@@ -1,0 +1,627 @@
+{% extends 'base.html' %}
+{% block title %}{{ listing.title }} — BorrowBondhu{% endblock %}
+
+{% block content %}
+<style>
+  .detail-page { padding: 28px 0 64px; }
+
+  .breadcrumb-bar {
+    font-size: 0.8rem; color: #64748b;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .breadcrumb-bar a { color: #64748b; text-decoration: none; }
+  .breadcrumb-bar a:hover { color: #16a34a; }
+
+  .main-image-wrap {
+    border-radius: 16px; overflow: hidden;
+    background: #f1f5f9;
+    width: 100%; height: 380px; position: relative;
+  }
+  .main-image-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .main-image-placeholder {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px; color: #cbd5e1; font-size: 0.85rem;
+  }
+  .main-image-placeholder i { font-size: 56px; }
+
+  .img-badge-wrap {
+    position: absolute; top: 14px; left: 14px;
+    display: flex; gap: 7px;
+  }
+  .img-cat-badge {
+    background: rgba(255,255,255,0.95); color: #15803d;
+    font-size: 10px; font-weight: 700;
+    padding: 4px 11px; border-radius: 9999px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .img-avail-badge {
+    font-size: 10px; font-weight: 700;
+    padding: 4px 11px; border-radius: 9999px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .img-avail-badge.available { background: #22c55e; color: white; }
+  .img-avail-badge.booked    { background: #ef4444; color: white; }
+
+  .listing-title {
+    font-size: 1.6rem; font-weight: 800;
+    color: #0f172a; letter-spacing: -0.4px;
+    line-height: 1.25; margin: 0 0 10px;
+  }
+  .listing-meta-row {
+    display: flex; flex-wrap: wrap;
+    align-items: center; gap: 10px; margin-bottom: 20px;
+  }
+  .meta-chip {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.8rem; color: #64748b; font-weight: 500;
+  }
+  .rating-chip {
+    display: flex; align-items: center; gap: 4px;
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 9999px; padding: 3px 10px;
+    font-size: 0.8rem; font-weight: 600; color: #92400e;
+  }
+
+  .info-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 20px;
+  }
+  .info-box {
+    background: #fff; border: 1.5px solid #e2e8f0;
+    border-radius: 12px; padding: 13px 15px;
+    display: flex; align-items: center; gap: 11px;
+  }
+  .info-box-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .info-box-label {
+    font-size: 0.7rem; font-weight: 600; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px;
+  }
+  .info-box-val {
+    font-size: 0.875rem; font-weight: 700; color: #1e293b;
+  }
+
+  .desc-block {
+    background: #f8fafc; border: 1.5px solid #e2e8f0;
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;
+  }
+  .desc-block .block-label {
+    font-size: 0.7rem; font-weight: 700; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+  .desc-block p {
+    font-size: 0.9rem; color: #475569; line-height: 1.75; margin: 0;
+  }
+
+  .owner-strip {
+    background: #fff; border: 1.5px solid #e2e8f0;
+    border-radius: 12px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 13px; margin-bottom: 20px;
+  }
+  .owner-avatar-lg {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: linear-gradient(135deg, #15803d, #34d478);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 18px; font-weight: 800; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(22,163,74,.3);
+  }
+  .owner-strip .owner-name { font-size: 0.9rem; font-weight: 700; color: #1e293b; }
+  .owner-strip .owner-sub  { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
+  .badge-member {
+    font-size: 0.72rem; font-weight: 600;
+    background: #f0fdf6; color: #15803d;
+    border: 1px solid #bbf7d4;
+    padding: 3px 10px; border-radius: 9999px;
+  }
+
+  .reviews-section { margin-top: 32px; }
+  .section-head {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 16px;
+  }
+  .section-head h5 {
+    font-size: 1rem; font-weight: 800; color: #1e293b;
+    margin: 0; display: flex; align-items: center; gap: 7px;
+  }
+  .avg-pill {
+    display: flex; align-items: center; gap: 5px;
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 9999px; padding: 4px 12px;
+    font-size: 0.8rem; font-weight: 700; color: #92400e;
+  }
+  .review-card {
+    background: #fff; border: 1.5px solid #e2e8f0;
+    border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+    transition: box-shadow 0.2s;
+  }
+  .review-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+  .review-top {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 10px;
+  }
+  .reviewer-row { display: flex; align-items: center; gap: 10px; }
+  .reviewer-av {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 13px; font-weight: 700; flex-shrink: 0;
+  }
+  .reviewer-nm { font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+  .reviewer-dt { font-size: 0.72rem; color: #94a3b8; margin-top: 1px; }
+  .star-row { display: flex; gap: 2px; }
+  .star-row .filled { color: #f59e0b; font-size: 14px; }
+  .star-row .empty  { color: #e2e8f0; font-size: 14px; }
+  .review-body {
+    font-size: 0.875rem; color: #475569; line-height: 1.65;
+    margin: 0; padding-top: 10px; border-top: 1px solid #f1f5f9;
+  }
+  .no-reviews-box {
+    background: #f8fafc; border: 2px dashed #e2e8f0;
+    border-radius: 14px; padding: 36px; text-align: center; color: #94a3b8;
+  }
+  .no-reviews-box i { font-size: 2.2rem; display: block; margin-bottom: 8px; }
+  .no-reviews-box p { font-size: 0.85rem; margin: 0; }
+
+  .booking-card {
+    background: #fff; border: 1.5px solid #e2e8f0;
+    border-radius: 20px; box-shadow: 0 12px 32px rgba(0,0,0,.10);
+    overflow: hidden; position: sticky; top: 80px;
+  }
+  .bc-header {
+    padding: 22px 22px 18px;
+    background: linear-gradient(135deg, #166534, #16a34a);
+    position: relative; overflow: hidden;
+  }
+  .bc-header.booked-bg { background: linear-gradient(135deg, #7f1d1d, #ef4444); }
+  .bc-header::after {
+    content: ''; position: absolute; right: -30px; top: -30px;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.07); border-radius: 50%;
+  }
+  .bc-header::before {
+    content: ''; position: absolute; left: -20px; bottom: -20px;
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.05); border-radius: 50%;
+  }
+  .bc-price {
+    font-size: 2.2rem; font-weight: 900;
+    color: white; letter-spacing: -1.5px; line-height: 1;
+  }
+  .bc-price-unit {
+    font-size: 0.85rem; color: rgba(255,255,255,0.65);
+    font-weight: 500; margin-left: 2px;
+  }
+  .bc-price-sub {
+    font-size: 0.78rem; color: rgba(255,255,255,0.6); margin-top: 4px;
+  }
+
+  .bc-body { padding: 20px 22px; }
+
+  .status-banner {
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;
+    display: flex; align-items: flex-start; gap: 10px; font-size: 0.83rem;
+  }
+  .status-banner.available {
+    background: #f0fdf6; border: 1.5px solid #bbf7d4; color: #166534;
+  }
+  .status-banner.booked {
+    background: #fef2f2; border: 1.5px solid #fecaca; color: #991b1b;
+  }
+  .status-banner i { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .status-banner strong { display: block; font-weight: 700; margin-bottom: 2px; }
+
+  .bc-owner {
+    display: flex; align-items: center; gap: 11px;
+    background: #f8fafc; border: 1.5px solid #e2e8f0;
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;
+  }
+  .bc-owner-av {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, #15803d, #34d478);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 17px; font-weight: 800; flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(22,163,74,.25);
+  }
+  .bc-owner-name  { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
+  .bc-owner-label { font-size: 0.72rem; color: #94a3b8; font-weight: 500; }
+
+  .detail-rows { margin-bottom: 18px; }
+  .detail-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.83rem;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .dr-label {
+    color: #94a3b8; font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .dr-label i { font-size: 12px; }
+  .dr-val { color: #334155; font-weight: 600; }
+  .dr-val.green { color: #16a34a; }
+  .dr-val.red   { color: #ef4444; }
+
+  .btn-rent {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px;
+    font-size: 0.95rem; font-weight: 700;
+    background: #16a34a; color: white !important;
+    border: none; border-radius: 10px;
+    text-decoration: none !important; transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(22,163,74,.35);
+  }
+  .btn-rent:hover {
+    background: #15803d; color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(22,163,74,.45);
+  }
+  .btn-rent-disabled {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px;
+    font-size: 0.95rem; font-weight: 700;
+    background: #e2e8f0; color: #94a3b8;
+    border: none; border-radius: 10px; cursor: not-allowed;
+  }
+  .btn-owner-actions { display: flex; gap: 8px; }
+  .btn-owner-actions a { flex: 1; text-align: center; font-weight: 600; }
+  .bc-signup-hint {
+    text-align: center; margin-top: 11px;
+    font-size: 0.78rem; color: #94a3b8;
+  }
+  .bc-signup-hint a { color: #16a34a; font-weight: 600; }
+  .safety-note {
+    margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 0.75rem; color: #94a3b8; text-align: center;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+</style>
+
+<div class="container detail-page">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-bar">
+    <a href="{% url 'home' %}">Home</a>
+    <i class="bi bi-chevron-right" style="font-size:10px;"></i>
+    <a href="{% url 'listing_list' %}">Browse</a>
+    <i class="bi bi-chevron-right" style="font-size:10px;"></i>
+    <a href="{% url 'listing_list' %}?category={{ listing.category }}">{{ listing.get_category_display }}</a>
+    <i class="bi bi-chevron-right" style="font-size:10px;"></i>
+    <span style="color:#475569; font-weight:600;">{{ listing.title|truncatechars:35 }}</span>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ══ LEFT COLUMN ══ -->
+    <div class="col-lg-7">
+
+      <!-- Image -->
+      <div class="main-image-wrap mb-4">
+        {% if listing.image %}
+          <img src="{{ listing.image.url }}" alt="{{ listing.title }}">
+        {% else %}
+          <div class="main-image-placeholder">
+            <i class="bi bi-image"></i>
+            <span>No image uploaded</span>
+          </div>
+        {% endif %}
+        <div class="img-badge-wrap">
+          <span class="img-cat-badge">{{ listing.get_category_display }}</span>
+          {% if active_booking %}
+            <span class="img-avail-badge booked">
+              <i class="bi bi-calendar-x"></i> Booked
+            </span>
+          {% else %}
+            <span class="img-avail-badge available">
+              <i class="bi bi-check-circle"></i> Available
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Title -->
+      <h1 class="listing-title">{{ listing.title }}</h1>
+
+      <!-- Meta -->
+      <div class="listing-meta-row">
+        <div class="meta-chip">
+          <i class="bi bi-geo-alt-fill"></i> {{ listing.location }}
+        </div>
+        {% if avg_rating %}
+          <div class="rating-chip">
+            <span style="color:#f59e0b;">★</span>
+            {{ avg_rating }}/5 &nbsp;({{ reviews.count }} review{{ reviews.count|pluralize }})
+          </div>
+        {% else %}
+          <div class="rating-chip" style="background:#f0f9ff;border-color:#bae6fd;color:#075985;">
+            <i class="bi bi-star" style="font-size:11px;"></i> No reviews yet
+          </div>
+        {% endif %}
+        <div class="meta-chip">
+          <i class="bi bi-clock"></i> Listed {{ listing.created_at|timesince }} ago
+        </div>
+      </div>
+
+      <!-- Info Grid -->
+      <div class="info-grid">
+
+        <!-- Price -->
+        <div class="info-box">
+          <div class="info-box-icon" style="background:#f0fdf6;color:#16a34a;">
+            <i class="bi bi-cash-coin"></i>
+          </div>
+          <div>
+            <div class="info-box-label">Price Per Day</div>
+            <div class="info-box-val" style="color:#16a34a;">৳{{ listing.price_per_day }}</div>
+          </div>
+        </div>
+
+        <!-- Rating -->
+        <div class="info-box">
+          <div class="info-box-icon" style="background:#fffbeb;color:#d97706;">
+            <i class="bi bi-star-fill"></i>
+          </div>
+          <div>
+            <div class="info-box-label">Avg Rating</div>
+            <div class="info-box-val">
+              {% if avg_rating %}{{ avg_rating }} / 5{% else %}No ratings{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Reviews count -->
+        <div class="info-box">
+          <div class="info-box-icon" style="background:#eff6ff;color:#2563eb;">
+            <i class="bi bi-chat-dots-fill"></i>
+          </div>
+          <div>
+            <div class="info-box-label">Total Reviews</div>
+            <div class="info-box-val">{{ reviews.count }}</div>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="info-box">
+          {% if active_booking %}
+            <div class="info-box-icon" style="background:#fef2f2;color:#ef4444;">
+              <i class="bi bi-calendar-x"></i>
+            </div>
+            <div>
+              <div class="info-box-label">Status</div>
+              <div class="info-box-val" style="color:#ef4444;">Booked</div>
+            </div>
+          {% else %}
+            <div class="info-box-icon" style="background:#f0fdf6;color:#16a34a;">
+              <i class="bi bi-calendar-check"></i>
+            </div>
+            <div>
+              <div class="info-box-label">Status</div>
+              <div class="info-box-val" style="color:#16a34a;">Available</div>
+            </div>
+          {% endif %}
+        </div>
+
+      </div>
+
+      <!-- Description -->
+      <div class="desc-block">
+        <div class="block-label">About this item</div>
+        <p>{{ listing.description }}</p>
+      </div>
+
+      <!-- Owner Strip -->
+      <div class="owner-strip">
+        <div class="owner-avatar-lg">
+          {% if listing.owner.first_name %}
+            {{ listing.owner.first_name|first|upper }}
+          {% else %}
+            {{ listing.owner.username|first|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <div class="owner-name">
+            {{ listing.owner.get_full_name|default:listing.owner.username }}
+          </div>
+          <div class="owner-sub">
+            Item Owner &nbsp;·&nbsp; Member since {{ listing.owner.date_joined|date:"M Y" }}
+          </div>
+        </div>
+        <div class="ms-auto">
+          <span class="badge-member">✓ Verified</span>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="reviews-section">
+        <div class="section-head">
+          <h5>
+            <i class="bi bi-chat-quote-fill" style="color:#16a34a;"></i> Reviews
+          </h5>
+          {% if avg_rating %}
+            <div class="avg-pill">
+              <span style="font-size:15px;color:#f59e0b;">★</span>
+              {{ avg_rating }} out of 5
+            </div>
+          {% endif %}
+        </div>
+
+        {% for review in reviews %}
+          <div class="review-card">
+            <div class="review-top">
+              <div class="reviewer-row">
+
+                {% if forloop.counter|divisibleby:4 %}
+                  <div class="reviewer-av" style="background:linear-gradient(135deg,#334155,#64748b);">
+                {% elif forloop.counter|divisibleby:3 %}
+                  <div class="reviewer-av" style="background:linear-gradient(135deg,#6d28d9,#a78bfa);">
+                {% elif forloop.counter|divisibleby:2 %}
+                  <div class="reviewer-av" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);">
+                {% else %}
+                  <div class="reviewer-av" style="background:linear-gradient(135deg,#15803d,#34d478);">
+                {% endif %}
+                  {% if review.reviewer.first_name %}
+                    {{ review.reviewer.first_name|first|upper }}
+                  {% else %}
+                    {{ review.reviewer.username|first|upper }}
+                  {% endif %}
+                </div>
+
+                <div>
+                  <div class="reviewer-nm">
+                    {{ review.reviewer.get_full_name|default:review.reviewer.username }}
+                  </div>
+                  <div class="reviewer-dt">{{ review.created_at|date:"M d, Y" }}</div>
+                </div>
+              </div>
+
+              <div class="star-row">
+                {% for i in "12345" %}
+                  <span class="{% if forloop.counter <= review.rating %}filled{% else %}empty{% endif %}">★</span>
+                {% endfor %}
+              </div>
+            </div>
+            <p class="review-body">{{ review.comment }}</p>
+          </div>
+        {% empty %}
+          <div class="no-reviews-box">
+            <i class="bi bi-chat-dots"></i>
+            <p>No reviews yet.<br>Reviews appear here after completed bookings.</p>
+          </div>
+        {% endfor %}
+
+      </div>
+    </div>
+
+    <!-- ══ RIGHT COLUMN ══ -->
+    <div class="col-lg-5">
+      <div class="booking-card">
+
+        <!-- Header -->
+        <div class="bc-header {% if active_booking %}booked-bg{% endif %}">
+          <div style="display:flex;align-items:baseline;gap:4px;">
+            <span class="bc-price">৳{{ listing.price_per_day }}</span>
+            <span class="bc-price-unit">/ day</span>
+          </div>
+          <div class="bc-price-sub">
+            {% if active_booking %}
+              Rented out · Available from {{ active_booking.end_date|date:"M d, Y" }}
+            {% else %}
+              Available now · Send a booking request
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="bc-body">
+
+          <!-- Status Banner -->
+          {% if active_booking %}
+            <div class="status-banner booked">
+              <i class="bi bi-calendar-x-fill"></i>
+              <div>
+                <strong>Currently Rented Out</strong>
+                Available again from {{ active_booking.end_date|date:"M d, Y" }}
+              </div>
+            </div>
+          {% else %}
+            <div class="status-banner available">
+              <i class="bi bi-check-circle-fill"></i>
+              <div>
+                <strong>Available to Rent</strong>
+                Request to rent and wait for owner approval
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Owner -->
+          <div class="bc-owner">
+            <div class="bc-owner-av">
+              {% if listing.owner.first_name %}
+                {{ listing.owner.first_name|first|upper }}
+              {% else %}
+                {{ listing.owner.username|first|upper }}
+              {% endif %}
+            </div>
+            <div>
+              <div class="bc-owner-name">
+                {{ listing.owner.get_full_name|default:listing.owner.username }}
+              </div>
+              <div class="bc-owner-label">Item Owner</div>
+            </div>
+          </div>
+
+          <!-- Detail Rows -->
+          <div class="detail-rows">
+            <div class="detail-row">
+              <span class="dr-label"><i class="bi bi-tag-fill"></i> Category</span>
+              <span class="dr-val">{{ listing.get_category_display }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="dr-label"><i class="bi bi-geo-alt-fill"></i> Location</span>
+              <span class="dr-val">{{ listing.location }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="dr-label"><i class="bi bi-calendar-plus"></i> Listed</span>
+              <span class="dr-val">{{ listing.created_at|date:"M d, Y" }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="dr-label"><i class="bi bi-shield-check"></i> Availability</span>
+              {% if active_booking %}
+                <span class="dr-val red">Booked until {{ active_booking.end_date|date:"M d" }}</span>
+              {% else %}
+                <span class="dr-val green">Available Now</span>
+              {% endif %}
+            </div>
+            <div class="detail-row">
+              <span class="dr-label"><i class="bi bi-star-fill"></i> Rating</span>
+              <span class="dr-val">
+                {% if avg_rating %}{{ avg_rating }} / 5 ★{% else %}Not rated yet{% endif %}
+              </span>
+            </div>
+          </div>
+
+          <!-- CTA Button -->
+          {% if user.is_authenticated %}
+            {% if user == listing.owner %}
+              <div class="btn-owner-actions">
+                <a href="{% url 'listing_edit' listing.pk %}" class="btn btn-outline-secondary btn-sm py-2">
+                  <i class="bi bi-pencil"></i> Edit Listing
+                </a>
+                <a href="{% url 'listing_delete' listing.pk %}" class="btn btn-outline-danger btn-sm py-2">
+                  <i class="bi bi-trash"></i> Delete
+                </a>
+              </div>
+            {% elif active_booking %}
+              <div class="btn-rent-disabled">
+                <i class="bi bi-calendar-x"></i> Not Available Right Now
+              </div>
+            {% else %}
+              <a href="{% url 'booking_create' listing.pk %}" class="btn-rent">
+                <i class="bi bi-calendar-plus"></i> Rent This Item
+              </a>
+            {% endif %}
+          {% else %}
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn-rent">
+              <i class="bi bi-box-arrow-in-right"></i> Login to Rent This Item
+            </a>
+            <p class="bc-signup-hint">
+              No account? <a href="{% url 'register' %}">Sign up free</a>
+            </p>
+          {% endif %}
+
+          <div class="safety-note">
+            <i class="bi bi-shield-check"></i>
+            Secure booking · Owner approval required
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

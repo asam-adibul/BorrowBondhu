@@ -1,0 +1,682 @@
+{% extends 'base.html' %}
+{% block title %}BorrowBondhu — Rent & Lend in Bangladesh{% endblock %}
+
+{% block content %}
+<style>
+  /* ══ HERO ══ */
+  .hero-section {
+    background: linear-gradient(135deg, #14532d 0%, #166534 40%, #15803d 75%, #16a34a 100%);
+    position: relative; overflow: hidden;
+    padding: 80px 0 100px;
+  }
+  .hero-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M50 50v-10h-5v10h-10v5h10v10h5v-10h10v-5h-10zM10 10V0H5v10H0v5h5v10h5V15h10v-5H10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-section::after {
+    content: '';
+    position: absolute; bottom: -2px; left: 0; right: 0;
+    height: 60px;
+    background: #f0f7f4;
+    clip-path: ellipse(55% 100% at 50% 100%);
+  }
+  .hero-content { position: relative; z-index: 1; }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50px; padding: 5px 14px;
+    font-size: 0.78rem; font-weight: 600; color: #86efac;
+    margin-bottom: 20px; letter-spacing: 0.3px;
+  }
+  .hero-eyebrow::before {
+    content: ''; width: 7px; height: 7px;
+    background: #22c55e; border-radius: 50%;
+    animation: blink 1.5s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 900; color: white;
+    line-height: 1.15; letter-spacing: -1px;
+    margin-bottom: 18px;
+  }
+  .hero-title span {
+    color: #86efac;
+  }
+  .hero-subtitle {
+    font-size: 1.05rem; color: rgba(255,255,255,0.75);
+    max-width: 480px; line-height: 1.7; margin-bottom: 32px;
+  }
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-hero-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #fbbf24; color: #78350f;
+    font-size: 0.95rem; font-weight: 800;
+    padding: 14px 28px; border-radius: 10px;
+    text-decoration: none; transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(251,191,36,.4);
+  }
+  .btn-hero-primary:hover {
+    background: #f59e0b; color: #78350f;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(251,191,36,.5);
+  }
+  .btn-hero-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.35);
+    color: white; font-size: 0.95rem; font-weight: 700;
+    padding: 14px 28px; border-radius: 10px;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .btn-hero-secondary:hover {
+    background: rgba(255,255,255,0.25);
+    color: white; transform: translateY(-2px);
+  }
+
+  /* Hero stats */
+  .hero-stats {
+    display: flex; gap: 32px; margin-top: 44px;
+    flex-wrap: wrap;
+  }
+  .hero-stat .val {
+    font-size: 1.6rem; font-weight: 900; color: white; line-height: 1;
+  }
+  .hero-stat .lbl {
+    font-size: 0.75rem; color: rgba(255,255,255,0.6);
+    font-weight: 500; margin-top: 2px;
+  }
+  .hero-stat-divider {
+    width: 1px; background: rgba(255,255,255,0.15); align-self: stretch;
+  }
+
+  /* Hero image card */
+  .hero-card {
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 20px; padding: 20px;
+    backdrop-filter: blur(10px);
+  }
+  .hero-card-item {
+    background: white; border-radius: 12px;
+    padding: 14px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-card-item:last-child { margin-bottom: 0; }
+  .hci-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .hci-title { font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+  .hci-price { font-size: 0.8rem; color: #16a34a; font-weight: 700; }
+  .hci-badge {
+    margin-left: auto; font-size: 0.65rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 50px; flex-shrink: 0;
+  }
+  .hci-badge.avail { background: #dcfce7; color: #166534; }
+  .hci-badge.booked { background: #fee2e2; color: #991b1b; }
+
+  /* Search bar */
+  .search-section {
+    background: #fff;
+    border: 1.5px solid #d1fae5;
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 4px 20px rgba(20,83,45,.08);
+    margin-top: -40px; position: relative; z-index: 10;
+    margin-bottom: 60px;
+  }
+  .search-title {
+    font-size: 0.75rem; font-weight: 700; color: #166534;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+  }
+  .search-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .search-input-wrap { flex: 1; min-width: 180px; position: relative; }
+  .search-input-wrap i {
+    position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%); color: #86efac; font-size: 14px;
+  }
+  .search-input-wrap input,
+  .search-input-wrap select {
+    width: 100%; border: 1.5px solid #bbf7d4;
+    border-radius: 8px; padding: 10px 12px 10px 34px;
+    font-size: 0.875rem; color: #1e293b;
+    background: #f0fdf4; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search-input-wrap input:focus,
+  .search-input-wrap select:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+    background: #fff;
+  }
+  .search-input-wrap select { padding-left: 34px; }
+  .btn-search {
+    background: linear-gradient(135deg, #166534, #16a34a);
+    color: white; border: none; border-radius: 8px;
+    padding: 10px 24px; font-size: 0.875rem; font-weight: 700;
+    display: flex; align-items: center; gap: 7px;
+    text-decoration: none; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(22,163,74,.3);
+  }
+  .btn-search:hover {
+    background: linear-gradient(135deg, #14532d, #15803d);
+    color: white; transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(22,163,74,.4);
+  }
+
+  /* ══ HOW IT WORKS ══ */
+  .how-section { padding: 20px 0 60px; }
+  .how-section .section-eyebrow {
+    font-size: 0.75rem; font-weight: 700; color: #16a34a;
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;
+  }
+  .how-section h2 {
+    font-size: 1.8rem; font-weight: 800; color: #14532d;
+    margin-bottom: 40px; letter-spacing: -0.3px;
+  }
+  .how-step {
+    text-align: center; padding: 0 16px;
+  }
+  .how-step-icon {
+    width: 64px; height: 64px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin: 0 auto 16px;
+  }
+  .how-step-icon.green  { background: linear-gradient(135deg, #dcfce7, #bbf7d4); }
+  .how-step-icon.yellow { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+  .how-step-icon.blue   { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+  .how-step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #16a34a; color: white;
+    font-size: 11px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px;
+  }
+  .how-step h5 { font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+  .how-step p  { font-size: 0.82rem; color: #64748b; line-height: 1.65; }
+  .how-connector {
+    flex: 1; height: 2px;
+    background: linear-gradient(90deg, #86efac, #bbf7d4);
+    margin-top: -52px; max-width: 80px;
+  }
+
+  /* ══ CATEGORIES ══ */
+  .categories-section { padding: 0 0 60px; }
+  .categories-section h2 { font-size: 1.8rem; font-weight: 800; color: #14532d; margin-bottom: 24px; }
+  .cat-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .cat-card {
+    background: #fff; border: 1.5px solid #d1fae5;
+    border-radius: 14px; padding: 20px;
+    display: flex; align-items: center; gap: 14px;
+    text-decoration: none; transition: all 0.2s;
+    box-shadow: 0 2px 6px rgba(20,83,45,.05);
+  }
+  .cat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(20,83,45,.12);
+    border-color: #86efac;
+  }
+  .cat-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .cat-name { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
+  .cat-count { font-size: 0.75rem; color: #64748b; margin-top: 1px; }
+
+  /* ══ FEATURED ══ */
+  .featured-section { padding: 0 0 60px; }
+  .featured-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 24px;
+  }
+  .featured-header h2 { font-size: 1.8rem; font-weight: 800; color: #14532d; margin: 0; }
+  .btn-view-all {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #f0fdf4; border: 1.5px solid #86efac;
+    color: #16a34a; border-radius: 8px;
+    padding: 8px 16px; font-size: 0.82rem; font-weight: 700;
+    text-decoration: none; transition: all 0.15s;
+  }
+  .btn-view-all:hover { background: #dcfce7; color: #15803d; }
+
+  /* ══ WHY US ══ */
+  .why-section {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border: 1.5px solid #bbf7d4;
+    border-radius: 20px; padding: 48px 40px;
+    margin-bottom: 60px;
+  }
+  .why-section h2 { font-size: 1.8rem; font-weight: 800; color: #14532d; margin-bottom: 32px; }
+  .why-item { display: flex; gap: 14px; margin-bottom: 24px; }
+  .why-item:last-child { margin-bottom: 0; }
+  .why-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: linear-gradient(135deg, #166534, #16a34a);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 17px; flex-shrink: 0;
+  }
+  .why-item h6 { font-size: 0.9rem; font-weight: 700; color: #14532d; margin-bottom: 3px; }
+  .why-item p  { font-size: 0.8rem; color: #475569; margin: 0; line-height: 1.6; }
+
+  /* ══ CTA BANNER ══ */
+  .cta-section {
+    background: linear-gradient(135deg, #14532d, #166534, #15803d);
+    border-radius: 20px; padding: 56px 40px;
+    text-align: center; margin-bottom: 60px;
+    position: relative; overflow: hidden;
+  }
+  .cta-section::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .cta-section h2 {
+    font-size: 2rem; font-weight: 900; color: white;
+    margin-bottom: 12px; position: relative;
+  }
+  .cta-section p {
+    color: rgba(255,255,255,0.7); font-size: 1rem;
+    margin-bottom: 28px; position: relative;
+  }
+  .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
+  .btn-cta-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #fbbf24; color: #78350f;
+    font-weight: 800; font-size: 0.95rem;
+    padding: 13px 28px; border-radius: 10px;
+    text-decoration: none; transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(251,191,36,.4);
+  }
+  .btn-cta-primary:hover { background: #f59e0b; color: #78350f; transform: translateY(-2px); }
+  .btn-cta-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.15);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    color: white; font-weight: 700; font-size: 0.95rem;
+    padding: 13px 28px; border-radius: 10px;
+    text-decoration: none; transition: all 0.2s;
+  }
+  .btn-cta-secondary:hover { background: rgba(255,255,255,0.25); color: white; transform: translateY(-2px); }
+
+  @media (max-width: 768px) {
+    .hero-section { padding: 50px 0 80px; }
+    .hero-stats { gap: 20px; }
+    .cat-grid { grid-template-columns: repeat(2, 1fr); }
+    .why-section, .cta-section { padding: 32px 20px; }
+    .search-row { flex-direction: column; }
+  }
+</style>
+
+<!-- ══ HERO ══ -->
+<div class="hero-section">
+  <div class="container hero-content">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-eyebrow">
+          <span>Bangladesh's #1 Rental Marketplace</span>
+        </div>
+        <h1 class="hero-title">
+          Rent What You Need.<br>
+          <span>Lend What You Have.</span>
+        </h1>
+        <p class="hero-subtitle">
+          BorrowBondhu connects neighbors across Bangladesh to share cameras, tools, event gear and more — at a fraction of the buying price.
+        </p>
+        <div class="hero-btns">
+          <a href="{% url 'listing_list' %}" class="btn-hero-primary">
+            <i class="bi bi-search"></i> Browse Items
+          </a>
+          {% if user.is_authenticated %}
+          <a href="{% url 'listing_create' %}" class="btn-hero-secondary">
+            <i class="bi bi-plus-circle"></i> List an Item
+          </a>
+          {% else %}
+          <a href="{% url 'register' %}" class="btn-hero-secondary">
+            <i class="bi bi-person-plus"></i> Join Free
+          </a>
+          {% endif %}
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="val">{{ featured.count }}+</div>
+            <div class="lbl">Items Listed</div>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <div class="val">100%</div>
+            <div class="lbl">Peer to Peer</div>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <div class="val">Free</div>
+            <div class="lbl">To Join</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5 offset-lg-1 d-none d-lg-block">
+        <div class="hero-card">
+          <div style="font-size:0.7rem;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;">
+            Available Near You
+          </div>
+          <div class="hero-card-item">
+            <div class="hci-icon" style="background:#f0fdf4;">📷</div>
+            <div>
+              <div class="hci-title">Sony A7III Camera</div>
+              <div class="hci-price">৳800/day</div>
+            </div>
+            <span class="hci-badge avail">Available</span>
+          </div>
+          <div class="hero-card-item">
+            <div class="hci-icon" style="background:#eff6ff;">🔧</div>
+            <div>
+              <div class="hci-title">Power Drill Set</div>
+              <div class="hci-price">৳350/day</div>
+            </div>
+            <span class="hci-badge booked">Booked</span>
+          </div>
+          <div class="hero-card-item">
+            <div class="hci-icon" style="background:#fef3c7;">🎤</div>
+            <div>
+              <div class="hci-title">PA Sound System</div>
+              <div class="hci-price">৳1,200/day</div>
+            </div>
+            <span class="hci-badge avail">Available</span>
+          </div>
+          <div class="hero-card-item">
+            <div class="hci-icon" style="background:#faf5ff;">🎯</div>
+            <div>
+              <div class="hci-title">Projector HD</div>
+              <div class="hci-price">৳500/day</div>
+            </div>
+            <span class="hci-badge avail">Available</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SEARCH BAR ══ -->
+<div class="container">
+  <div class="search-section">
+    <div class="search-title"><i class="bi bi-search"></i> &nbsp;Quick Search</div>
+    <form method="get" action="{% url 'listing_list' %}">
+      <div class="search-row">
+        <div class="search-input-wrap" style="flex:2;">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" placeholder="What do you want to rent? (camera, drill, projector...)">
+        </div>
+        <div class="search-input-wrap">
+          <i class="bi bi-tag"></i>
+          <select name="category">
+            <option value="">All Categories</option>
+            <option value="cameras">Cameras & Photography</option>
+            <option value="electronics">Electronics</option>
+            <option value="tools">Tools & Equipment</option>
+            <option value="events">Event Equipment</option>
+            <option value="sports">Sports & Outdoors</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="search-input-wrap">
+          <i class="bi bi-geo-alt"></i>
+          <input type="text" name="location" placeholder="Location...">
+        </div>
+        <button type="submit" class="btn-search">
+          <i class="bi bi-search"></i> Search
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══ CATEGORIES ══ -->
+<div class="container categories-section">
+  <h2 class="section-title">Browse by Category</h2>
+  <div class="cat-grid">
+    <a href="{% url 'listing_list' %}?category=cameras" class="cat-card">
+      <div class="cat-icon" style="background:linear-gradient(135deg,#dcfce7,#bbf7d4);">📷</div>
+      <div>
+        <div class="cat-name">Cameras & Photography</div>
+        <div class="cat-count">DSLRs, lenses, tripods & more</div>
+      </div>
+    </a>
+    <a href="{% url 'listing_list' %}?category=electronics" class="cat-card">
+      <div class="cat-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">💻</div>
+      <div>
+        <div class="cat-name">Electronics</div>
+        <div class="cat-count">Laptops, projectors, tablets</div>
+      </div>
+    </a>
+    <a href="{% url 'listing_list' %}?category=tools" class="cat-card">
+      <div class="cat-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">🔧</div>
+      <div>
+        <div class="cat-name">Tools & Equipment</div>
+        <div class="cat-count">Drills, saws, ladders & more</div>
+      </div>
+    </a>
+    <a href="{% url 'listing_list' %}?category=events" class="cat-card">
+      <div class="cat-icon" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);">🎤</div>
+      <div>
+        <div class="cat-name">Event Equipment</div>
+        <div class="cat-count">Sound, lighting, decor</div>
+      </div>
+    </a>
+    <a href="{% url 'listing_list' %}?category=sports" class="cat-card">
+      <div class="cat-icon" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);">⚽</div>
+      <div>
+        <div class="cat-name">Sports & Outdoors</div>
+        <div class="cat-count">Gear, bikes, camping</div>
+      </div>
+    </a>
+    <a href="{% url 'listing_list' %}?category=other" class="cat-card">
+      <div class="cat-icon" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);">📦</div>
+      <div>
+        <div class="cat-name">Other Items</div>
+        <div class="cat-count">Everything else</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- ══ HOW IT WORKS ══ -->
+<div class="container how-section">
+  <div class="text-center mb-5">
+    <div class="section-eyebrow">Simple Process</div>
+    <h2 class="section-title">How BorrowBondhu Works</h2>
+  </div>
+  <div class="row g-4 text-center">
+    <div class="col-md-3">
+      <div class="how-step">
+        <div class="how-step-num">1</div>
+        <div class="how-step-icon green">
+          <i class="bi bi-person-plus-fill" style="color:#16a34a;"></i>
+        </div>
+        <h5>Create Account</h5>
+        <p>Sign up free in seconds. No credit card required to get started.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="how-step">
+        <div class="how-step-num">2</div>
+        <div class="how-step-icon yellow">
+          <i class="bi bi-search" style="color:#d97706;"></i>
+        </div>
+        <h5>Find an Item</h5>
+        <p>Browse hundreds of items listed by people near you across Bangladesh.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="how-step">
+        <div class="how-step-num">3</div>
+        <div class="how-step-icon green">
+          <i class="bi bi-calendar-check-fill" style="color:#16a34a;"></i>
+        </div>
+        <h5>Book It</h5>
+        <p>Send a booking request with your dates and wait for owner approval.</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="how-step">
+        <div class="how-step-num">4</div>
+        <div class="how-step-icon blue">
+          <i class="bi bi-star-fill" style="color:#2563eb;"></i>
+        </div>
+        <h5>Enjoy & Review</h5>
+        <p>Use the item, return it, and leave a review to help the community.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FEATURED LISTINGS ══ -->
+<div class="container featured-section">
+  <div class="featured-header">
+    <h2>Featured Listings</h2>
+    <a href="{% url 'listing_list' %}" class="btn-view-all">
+      View All <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+
+  {% if featured %}
+  <div class="row g-4">
+    {% for item in featured %}
+    <div class="col-xl-3 col-lg-4 col-md-6">
+      <div class="item-card">
+        <div class="card-img-wrap">
+          {% if item.image %}
+            <img src="{{ item.image.url }}" alt="{{ item.title }}">
+          {% else %}
+            <div class="card-img-placeholder">
+              {% if item.category == 'cameras' %}📷
+              {% elif item.category == 'electronics' %}💻
+              {% elif item.category == 'tools' %}🔧
+              {% elif item.category == 'events' %}🎤
+              {% elif item.category == 'sports' %}⚽
+              {% else %}📦{% endif %}
+            </div>
+          {% endif %}
+          <div class="cat-pill">{{ item.get_category_display }}</div>
+          {% if not item.is_currently_booked %}
+          <div class="avail-dot"></div>
+          {% endif %}
+          {% with booking=item.is_currently_booked %}
+          {% if booking %}
+          <div class="booked-overlay">
+            <div class="booked-badge">
+              <i class="bi bi-calendar-x"></i> Booked until {{ booking.end_date|date:"M d" }}
+            </div>
+          </div>
+          {% endif %}
+          {% endwith %}
+        </div>
+        <div class="card-body-custom">
+          <div class="card-title-text">{{ item.title }}</div>
+          <div class="card-location-text">
+            <i class="bi bi-geo-alt-fill"></i> {{ item.location }}
+          </div>
+          <div class="card-meta-row">
+            <div class="card-price-text">৳{{ item.price_per_day }} <span>/day</span></div>
+            {% with avg=item.average_rating %}
+            {% if avg %}
+            <div class="card-rating-text"><span class="star-icon">★</span> {{ avg }}</div>
+            {% else %}
+            <div class="card-no-rating">New</div>
+            {% endif %}
+            {% endwith %}
+          </div>
+        </div>
+        <div class="card-footer-custom">
+          <div class="owner-row">
+            <div class="owner-avatar-circle">
+              {% if item.owner.first_name %}{{ item.owner.first_name|first|upper }}{% else %}{{ item.owner.username|first|upper }}{% endif %}
+            </div>
+            <div class="owner-name-text">{{ item.owner.get_full_name|default:item.owner.username|truncatechars:16 }}</div>
+          </div>
+          {% if item.is_currently_booked %}
+          <a href="{% url 'listing_detail' item.pk %}" class="card-view-btn booked-btn">Booked</a>
+          {% else %}
+          <a href="{% url 'listing_detail' item.pk %}" class="card-view-btn">View</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <div style="font-size:3rem;margin-bottom:12px;">📦</div>
+    <p style="color:#64748b;">No listings yet. <a href="{% url 'listing_create' %}">Be the first to list!</a></p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ══ WHY + CTA ROW ══ -->
+<div class="container mb-5">
+  <div class="row g-4 align-items-stretch">
+    <div class="col-lg-5">
+      <div class="why-section h-100">
+        <h2>Why BorrowBondhu?</h2>
+        <div class="why-item">
+          <div class="why-icon"><i class="bi bi-piggy-bank-fill"></i></div>
+          <div>
+            <h6>Save Money</h6>
+            <p>Rent instead of buy. Pay only for the days you need it.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon"><i class="bi bi-people-fill"></i></div>
+          <div>
+            <h6>Community Powered</h6>
+            <p>Real people, real items. Every lender is verified by our team.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon"><i class="bi bi-shield-fill-check"></i></div>
+          <div>
+            <h6>Safe & Secure</h6>
+            <p>Bookings are tracked. Reviews keep everyone accountable.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon"><i class="bi bi-cash-coin"></i></div>
+          <div>
+            <h6>Earn from Your Stuff</h6>
+            <p>Turn idle items into income. List for free, earn every day.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="cta-section h-100 d-flex flex-column justify-content-center">
+        <h2>Ready to Start?</h2>
+        <p>Join thousands of Bangladeshis already renting and lending on BorrowBondhu.</p>
+        <div class="cta-btns">
+          <a href="{% url 'listing_list' %}" class="btn-cta-primary">
+            <i class="bi bi-search"></i> Browse Items Now
+          </a>
+          {% if not user.is_authenticated %}
+          <a href="{% url 'register' %}" class="btn-cta-secondary">
+            <i class="bi bi-person-plus"></i> Create Free Account
+          </a>
+          {% else %}
+          <a href="{% url 'listing_create' %}" class="btn-cta-secondary">
+            <i class="bi bi-plus-circle"></i> List Your Item
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

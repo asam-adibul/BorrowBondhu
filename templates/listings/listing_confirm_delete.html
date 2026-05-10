@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Delete Listing{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5 text-center">
+      <div class="card p-4 shadow-sm">
+        <i class="bi bi-exclamation-triangle-fill text-danger display-4 mb-3"></i>
+        <h4 class="fw-bold">Delete "{{ listing.title }}"?</h4>
+        <p class="text-muted">This action cannot be undone.</p>
+        <form method="post" class="d-flex gap-2 justify-content-center">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Yes, Delete</button>
+          <a href="{% url 'my_listings' %}" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

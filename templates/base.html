@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}BorrowBondhu{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+
+    /* ══════════════════════════════════════
+       BASE
+    ══════════════════════════════════════ */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #f0f7f4;
+      color: #1e293b;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    a { color: #16a34a; text-decoration: none; }
+    a:hover { color: #15803d; }
+
+    /* ══════════════════════════════════════
+       NAVBAR
+    ══════════════════════════════════════ */
+    .main-navbar {
+      background: linear-gradient(135deg, #14532d 0%, #166534 60%, #15803d 100%);
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 16px rgba(20,83,45,.35);
+    }
+    .navbar-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 62px;
+    }
+
+    /* Brand */
+    .navbar-brand {
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: white !important;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      text-decoration: none;
+      flex-shrink: 0;
+      letter-spacing: -0.4px;
+    }
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,0.2);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 16px;
+    }
+
+    /* Nav Links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin: 0 6px;
+    }
+    .nav-link-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 11px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.82) !important;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link-item:hover {
+      background: rgba(255,255,255,0.15);
+      color: white !important;
+    }
+    .nav-link-item i { font-size: 14px; }
+
+    /* Search Bar */
+    .search-wrap {
+      flex: 1;
+      max-width: 360px;
+    }
+    .search-form {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 50px;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    .search-form:focus-within {
+      background: rgba(255,255,255,0.22);
+      border-color: rgba(255,255,255,0.55);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+    }
+    .search-form .search-icon-left {
+      padding: 0 10px 0 14px;
+      color: rgba(255,255,255,0.65);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .search-form input {
+      flex: 1; border: none; outline: none;
+      background: transparent;
+      font-size: 0.82rem;
+      color: white;
+      padding: 9px 0;
+      min-width: 0;
+    }
+    .search-form input::placeholder { color: rgba(255,255,255,0.5); }
+    .search-form button {
+      background: rgba(255,255,255,0.2);
+      color: white; border: none;
+      border-left: 1px solid rgba(255,255,255,0.2);
+      padding: 9px 16px;
+      font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .search-form button:hover { background: rgba(255,255,255,0.3); }
+
+    /* Right Side */
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* Add Listing button */
+    .btn-nav-add {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 0.8rem; font-weight: 700;
+      background: #fbbf24;
+      color: #78350f !important;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.15s;
+      box-shadow: 0 2px 8px rgba(251,191,36,.35);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-nav-add:hover {
+      background: #f59e0b;
+      color: #78350f !important;
+      transform: translateY(-1px);
+    }
+
+    /* Icon buttons */
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.85); font-size: 16px;
+      text-decoration: none; transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .icon-btn:hover {
+      background: rgba(255,255,255,0.22);
+      color: white; border-color: rgba(255,255,255,0.4);
+    }
+
+    /* User Avatar Dropdown */
+    .user-avatar-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      border-radius: 50px;
+      padding: 4px 12px 4px 4px;
+      cursor: pointer; transition: all 0.15s;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .user-avatar-btn:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.4);
+    }
+    .user-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      display: flex; align-items: center; justify-content: center;
+      color: #78350f; font-weight: 900; font-size: 12px;
+      flex-shrink: 0;
+    }
+    .user-avatar-name {
+      font-size: 0.82rem; font-weight: 700; color: white;
+      max-width: 80px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Auth Buttons */
+    .btn-nav-login {
+      font-size: 0.82rem; font-weight: 700;
+      color: white !important;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      border-radius: 8px; padding: 7px 14px;
+      text-decoration: none; transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-nav-login:hover { background: rgba(255,255,255,0.15); color: white !important; }
+    .btn-nav-signup {
+      font-size: 0.82rem; font-weight: 700;
+      background: #fbbf24; color: #78350f !important;
+      border-radius: 8px; padding: 7px 14px;
+      text-decoration: none; transition: all 0.15s;
+      box-shadow: 0 2px 8px rgba(251,191,36,.35);
+      white-space: nowrap;
+    }
+    .btn-nav-signup:hover { background: #f59e0b; color: #78350f !important; transform: translateY(-1px); }
+
+    /* Pending Badge */
+    .pending-badge {
+      background: #ef4444; color: white;
+      font-size: 0.6rem; font-weight: 800;
+      padding: 1px 5px; border-radius: 50px;
+      margin-left: 2px; vertical-align: middle;
+    }
+
+    /* Dropdown */
+    .dropdown-menu {
+      border: 1.5px solid #d1fae5 !important;
+      border-radius: 14px !important;
+      box-shadow: 0 12px 36px rgba(20,83,45,.15) !important;
+      padding: 6px !important;
+      min-width: 220px !important;
+      margin-top: 10px !important;
+      background: #fff !important;
+    }
+    .dropdown-item {
+      border-radius: 8px !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+      color: #475569 !important;
+      padding: 9px 12px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 9px !important;
+      transition: background 0.12s !important;
+    }
+    .dropdown-item:hover { background: #f0fdf6 !important; color: #16a34a !important; }
+    .dropdown-item.danger:hover { background: #fff5f5 !important; color: #ef4444 !important; }
+    .dropdown-divider { border-color: #f0fdf4 !important; margin: 4px 0 !important; }
+    .dropdown-header-info {
+      padding: 10px 12px 12px;
+      background: linear-gradient(135deg, #f0fdf6, #dcfce7);
+      border-radius: 8px 8px 0 0;
+      margin: -6px -6px 4px;
+    }
+    .dropdown-header-info .dh-name { font-size: 0.875rem; font-weight: 700; color: #166534; }
+    .dropdown-header-info .dh-email { font-size: 0.75rem; color: #16a34a; }
+
+    /* Mobile Toggler — hidden on desktop */
+    .navbar-toggler-custom {
+      display: none;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: white; font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Mobile Menu — hidden by default always */
+    .mobile-menu {
+      display: none;
+      background: #14532d;
+      padding: 10px 0;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .mobile-menu.open { display: block; }
+    .mobile-menu a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px;
+      color: rgba(255,255,255,0.85) !important;
+      font-size: 0.875rem; font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s;
+      border: none;
+    }
+    .mobile-menu a:hover { background: rgba(255,255,255,0.1); color: white !important; }
+    .mobile-menu a i { font-size: 15px; width: 18px; }
+
+    /* ══════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 991px) {
+      .nav-links { display: none; }
+      .search-wrap { max-width: 100%; }
+      .btn-nav-add { display: none; }
+      .navbar-toggler-custom { display: flex; }
+    }
+    @media (max-width: 576px) {
+      .user-avatar-name { display: none; }
+      .navbar-inner { gap: 8px; }
+      .search-wrap { max-width: 180px; }
+    }
+
+    /* ══════════════════════════════════════
+       FLASH MESSAGES
+    ══════════════════════════════════════ */
+    .alert {
+      border: none; border-radius: 10px;
+      font-size: 0.875rem; font-weight: 500;
+    }
+    .alert-success { background: linear-gradient(135deg,#f0fdf6,#dcfce7); color:#166534; border-left:4px solid #22c55e; }
+    .alert-info    { background: linear-gradient(135deg,#eff6ff,#dbeafe); color:#1e40af; border-left:4px solid #3b82f6; }
+    .alert-warning { background: linear-gradient(135deg,#fffbeb,#fef3c7); color:#92400e; border-left:4px solid #f59e0b; }
+    .alert-danger  { background: linear-gradient(135deg,#fef2f2,#fee2e2); color:#991b1b; border-left:4px solid #ef4444; }
+
+    /* ══════════════════════════════════════
+       CARDS
+    ══════════════════════════════════════ */
+    .card {
+      border: 1.5px solid #d1fae5; border-radius: 14px;
+      box-shadow: 0 2px 8px rgba(20,83,45,.06);
+      background: #fff; transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(20,83,45,.12); }
+
+    /* ══════════════════════════════════════
+       ITEM CARDS
+    ══════════════════════════════════════ */
+    .item-card {
+      background: #fff; border: 1.5px solid #d1fae5;
+      border-radius: 14px; overflow: hidden;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+      height: 100%; display: flex; flex-direction: column;
+      box-shadow: 0 2px 8px rgba(20,83,45,.06);
+    }
+    .item-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 32px rgba(20,83,45,.15);
+      border-color: #86efac;
+    }
+    .card-img-wrap {
+      position: relative; height: 185px;
+      background: #f0fdf4; flex-shrink: 0; overflow: hidden;
+    }
+    .card-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.35s ease; }
+    .item-card:hover .card-img-wrap img { transform: scale(1.05); }
+    .card-img-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+    .cat-pill {
+      position: absolute; top: 10px; left: 10px;
+      background: rgba(255,255,255,0.95); color: #15803d;
+      font-size: 10px; font-weight: 700;
+      padding: 3px 10px; border-radius: 50px;
+      text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .avail-dot {
+      position: absolute; top: 12px; right: 12px;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #22c55e; box-shadow: 0 0 0 2.5px white;
+    }
+    .booked-overlay {
+      position: absolute; inset: 0;
+      background: rgba(15,23,42,0.55);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .booked-badge {
+      background: #ef4444; color: white;
+      font-size: 11.5px; font-weight: 600;
+      padding: 6px 14px; border-radius: 50px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .card-body-custom { padding: 13px 14px 10px; flex: 1; }
+    .card-title-text { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-location-text { font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
+    .card-meta-row { display: flex; align-items: center; justify-content: space-between; }
+    .card-price-text { font-size: 17px; font-weight: 800; color: #16a34a; }
+    .card-price-text span { font-size: 11px; font-weight: 400; color: #94a3b8; }
+    .card-rating-text { font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 2px; }
+    .star-icon { color: #f59e0b; font-size: 13px; }
+    .card-no-rating { font-size: 10px; font-weight: 600; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 50px; }
+    .card-footer-custom {
+      border-top: 1.5px solid #f0fdf4; padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: #f0fdf4;
+    }
+    .owner-row { display: flex; align-items: center; gap: 7px; }
+    .owner-avatar-circle {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: linear-gradient(135deg, #15803d, #34d478);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 10px; font-weight: 700; flex-shrink: 0;
+    }
+    .owner-name-text { font-size: 11px; color: #64748b; font-weight: 500; }
+    .card-view-btn {
+      font-size: 12px; font-weight: 700;
+      background: linear-gradient(135deg, #166534, #16a34a);
+      color: white; border: none; border-radius: 8px;
+      padding: 6px 14px; text-decoration: none;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .card-view-btn:hover { background: linear-gradient(135deg,#14532d,#15803d); color: white; transform: scale(1.04); }
+    .card-view-btn.booked-btn { background: #94a3b8; cursor: default; }
+    .card-view-btn.booked-btn:hover { background: #94a3b8; transform: none; }
+
+    /* ══════════════════════════════════════
+       BUTTONS
+    ══════════════════════════════════════ */
+    .btn { font-weight: 600; border-radius: 8px; font-size: 0.875rem; transition: all 0.15s; }
+    .btn-success, .btn-primary { background: linear-gradient(135deg,#166534,#16a34a); border: none; box-shadow: 0 2px 8px rgba(22,163,74,.3); }
+    .btn-success:hover, .btn-primary:hover { background: linear-gradient(135deg,#14532d,#15803d); transform: translateY(-1px); }
+    .btn-outline-success { border: 1.5px solid #16a34a; color: #16a34a; }
+    .btn-outline-success:hover { background: #f0fdf6; border-color: #15803d; color: #15803d; }
+    .btn-outline-secondary { border: 1.5px solid #cbd5e1; color: #64748b; }
+    .btn-outline-secondary:hover { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+    .btn-danger { background: linear-gradient(135deg,#dc2626,#ef4444); border: none; }
+    .btn-outline-danger { border: 1.5px solid #dc2626; color: #dc2626; }
+    .btn-outline-danger:hover { background: #fef2f2; color: #991b1b; }
+
+    /* ══════════════════════════════════════
+       FORMS
+    ══════════════════════════════════════ */
+    .form-control, .form-select {
+      border: 1.5px solid #bbf7d4; border-radius: 8px;
+      font-size: 0.875rem; color: #1e293b;
+      padding: 0.55rem 0.85rem; background: #f0fdf4;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+      background: #fff; outline: none;
+    }
+    .form-label { font-size: 0.78rem; font-weight: 700; color: #166534; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* ══════════════════════════════════════
+       TABLE
+    ══════════════════════════════════════ */
+    .table { border-radius: 12px; overflow: hidden; border: 1.5px solid #bbf7d4; }
+    .table thead th { background: linear-gradient(135deg,#f0fdf6,#dcfce7); color: #166534; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1.5px solid #86efac; padding: 12px 16px; }
+    .table td { padding: 12px 16px; vertical-align: middle; border-color: #f0fdf4; }
+    .table tbody tr:hover { background: #f0fdf4; }
+
+    /* ══════════════════════════════════════
+       MISC
+    ══════════════════════════════════════ */
+    .hero { background: linear-gradient(135deg,#14532d 0%,#166534 40%,#15803d 75%,#16a34a 100%); position: relative; overflow: hidden; }
+    .star { color: #f59e0b; }
+    .badge-category { background: #dcfce7; color: #15803d; font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 50px; }
+
+    /* ══════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════ */
+    footer { background: linear-gradient(135deg,#14532d,#166534); color: #86efac; }
+    footer strong { color: white; }
+    footer a { color: #86efac; }
+    footer a:hover { color: #bbf7d4; }
+
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════ -->
+<nav class="main-navbar">
+  <div class="container navbar-inner">
+
+    <!-- Brand -->
+    <a class="navbar-brand" href="{% url 'home' %}">
+      <div class="brand-icon"><i class="bi bi-box-seam-fill"></i></div>
+      BorrowBondhu
+    </a>
+
+    <!-- Nav Links — desktop only -->
+    <div class="nav-links">
+      <a href="{% url 'home' %}" class="nav-link-item">
+        <i class="bi bi-house-door"></i> Home
+      </a>
+      <a href="{% url 'listing_list' %}" class="nav-link-item">
+        <i class="bi bi-grid-3x3-gap"></i> Browse
+      </a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}" class="nav-link-item">
+        <i class="bi bi-grid-1x2"></i> Dashboard
+      </a>
+      <a href="{% url 'my_bookings' %}" class="nav-link-item">
+        <i class="bi bi-calendar-check"></i> Bookings
+      </a>
+      <a href="{% url 'my_listings' %}" class="nav-link-item">
+        <i class="bi bi-list-ul"></i> Listings
+      </a>
+      {% if user.is_superuser %}
+      <a href="{% url 'pending_approvals' %}" class="nav-link-item">
+        <i class="bi bi-shield-check"></i> Approvals
+        {% if pending_listings_count %}
+        <span class="pending-badge">{{ pending_listings_count }}</span>
+        {% endif %}
+      </a>
+      <a href="{% url 'damage_reports' %}" class="nav-link-item">
+        <i class="bi bi-exclamation-triangle"></i> Damages
+        {% if damage_reports_count %}
+        <span class="pending-badge" style="background:#ef4444;">{{ damage_reports_count }}</span>
+        {% endif %}
+      </a>
+      {% endif %}
+
+      {% endif %}
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-wrap">
+      <form class="search-form" method="get" action="{% url 'listing_list' %}">
+        <span class="search-icon-left"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" placeholder="Search items..." autocomplete="off">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+
+    <!-- Right Side -->
+    <div class="navbar-right">
+      {% if user.is_authenticated %}
+
+      <!-- Add Listing — desktop only -->
+      <a href="{% url 'listing_create' %}" class="btn-nav-add">
+        <i class="bi bi-plus-circle-fill"></i> Add Listing
+      </a>
+
+      <!-- Bookings Icon -->
+      <a href="{% url 'my_bookings' %}" class="icon-btn" title="My Bookings">
+        <i class="bi bi-calendar-check"></i>
+      </a>
+
+      <!-- User Dropdown -->
+      <div class="dropdown">
+        <a href="#" class="user-avatar-btn dropdown-toggle"
+           data-bs-toggle="dropdown" aria-expanded="false"
+           style="text-decoration:none;">
+          <div class="user-avatar">
+            {% if user.first_name %}{{ user.first_name|first|upper }}{% else %}{{ user.username|first|upper }}{% endif %}
+          </div>
+          <span class="user-avatar-name">{{ user.first_name|default:user.username }}</span>
+          <i class="bi bi-chevron-down" style="font-size:10px;color:rgba(255,255,255,0.7);margin-left:2px;"></i>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <div class="dropdown-header-info">
+              <div class="dh-name">{{ user.get_full_name|default:user.username }}</div>
+              <div class="dh-email">{{ user.email }}</div>
+            </div>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'dashboard' %}">
+              <i class="bi bi-grid-1x2-fill" style="color:#16a34a;"></i> Dashboard
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'profile' %}">
+              <i class="bi bi-person-circle" style="color:#16a34a;"></i> My Profile
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'my_listings' %}">
+              <i class="bi bi-list-ul" style="color:#16a34a;"></i> My Listings
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'my_bookings' %}">
+              <i class="bi bi-calendar-check" style="color:#16a34a;"></i> My Bookings
+            </a>
+          </li>
+          
+          {% if user.is_superuser %}
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <a class="dropdown-item" href="{% url 'pending_approvals' %}">
+              <i class="bi bi-shield-check" style="color:#16a34a;"></i>
+              Listing Approvals
+              {% if pending_listings_count %}
+              <span class="pending-badge">{{ pending_listings_count }}</span>
+              {% endif %}
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="{% url 'damage_reports' %}">
+              <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i>
+              Damage Reports
+              {% if damage_reports_count %}
+              <span class="pending-badge" style="background:#ef4444;">{{ damage_reports_count }}</span>
+              {% endif %}
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="/admin/">
+              <i class="bi bi-shield-fill-check" style="color:#6366f1;"></i> Admin Panel
+            </a>
+          </li>
+          {% endif %}
+
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <a class="dropdown-item danger" href="{% url 'logout' %}">
+              <i class="bi bi-box-arrow-right" style="color:#ef4444;"></i> Logout
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      {% else %}
+      <a href="{% url 'login' %}" class="btn-nav-login">Login</a>
+      <a href="{% url 'register' %}" class="btn-nav-signup">Sign Up Free</a>
+      {% endif %}
+
+      <!-- Mobile Toggler -->
+      <button class="navbar-toggler-custom" onclick="toggleMobile()" aria-label="Menu">
+        <i class="bi bi-list"></i>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Mobile Menu — hidden by default -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="{% url 'home' %}"><i class="bi bi-house-door"></i> Home</a>
+    <a href="{% url 'listing_list' %}"><i class="bi bi-grid-3x3-gap"></i> Browse Items</a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'dashboard' %}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a href="{% url 'my_bookings' %}"><i class="bi bi-calendar-check"></i> My Bookings</a>
+    <a href="{% url 'my_listings' %}"><i class="bi bi-list-ul"></i> My Listings</a>
+    <a href="{% url 'listing_create' %}"><i class="bi bi-plus-circle"></i> Add Listing</a>
+    <a href="{% url 'profile' %}"><i class="bi bi-person-circle"></i> My Profile</a>
+    {% if user.is_superuser %}
+    <a href="{% url 'pending_approvals' %}"><i class="bi bi-shield-check"></i> Listing Approvals</a>
+    <a href="/admin/"><i class="bi bi-shield-fill-check"></i> Admin Panel</a>
+    {% endif %}
+    <a href="{% url 'logout' %}" style="color:#fca5a5 !important;">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+    {% else %}
+    <a href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right"></i> Login</a>
+    <a href="{% url 'register' %}"><i class="bi bi-person-plus"></i> Sign Up Free</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     FLASH MESSAGES
+══════════════════════════════════════ -->
+<div class="container mt-3">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+
+{% block content %}{% endblock %}
+
+<!-- ══════════════════════════════════════
+     FOOTER
+══════════════════════════════════════ -->
+<footer class="mt-5 py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6 mb-3 mb-md-0">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <div class="brand-icon" style="width:28px;height:28px;font-size:13px;">
+            <i class="bi bi-box-seam-fill"></i>
+          </div>
+          <strong style="color:white;font-size:1rem;">BorrowBondhu</strong>
+        </div>
+        <p class="mb-0" style="font-size:0.82rem;">Rent what you need. Lend what you have.</p>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <div class="d-flex gap-3 justify-content-md-end mb-2" style="font-size:0.82rem;">
+          <a href="{% url 'listing_list' %}">Browse Items</a>
+          <a href="{% url 'listing_create' %}">List an Item</a>
+          {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}">Dashboard</a>
+          {% endif %}
+          <a href="/admin/">Admin</a>
+        </div>
+        <p class="mb-0" style="font-size:0.78rem;">
+          &copy; 2025 BorrowBondhu. Built with Django 🐍
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleMobile() {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobileMenu');
+    const btn  = document.querySelector('.navbar-toggler-custom');
+    if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+      menu.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,477 @@
+{% extends 'base.html' %}
+{% block title %}Damage Reports — BorrowBondhu{% endblock %}
+
+{% block content %}
+<style>
+  .damage-page { padding: 28px 0 64px; }
+
+  .page-header {
+    background: linear-gradient(135deg, #7f1d1d, #dc2626);
+    border-radius: 16px; padding: 24px 28px;
+    margin-bottom: 28px; display: flex;
+    align-items: center; gap: 16px;
+    position: relative; overflow: hidden;
+  }
+  .page-header::after {
+    content: ''; position: absolute; right: -30px; top: -30px;
+    width: 140px; height: 140px;
+    background: rgba(255,255,255,0.06); border-radius: 50%;
+  }
+  .page-header h2 { color: white; font-size: 1.4rem; font-weight: 800; margin: 0 0 4px; }
+  .page-header p  { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+  .header-badge {
+    margin-left: auto; font-size: 0.875rem; font-weight: 800;
+    background: white; color: #dc2626;
+    padding: 6px 16px; border-radius: 50px; flex-shrink: 0;
+    position: relative; z-index: 1;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-bottom: 28px;
+  }
+  .stat-card {
+    background: #fff; border-radius: 14px; padding: 18px 20px;
+    display: flex; align-items: center; gap: 14px;
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  }
+  .stat-icon {
+    width: 46px; height: 46px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .stat-icon.red    { background: #fef2f2; color: #ef4444; }
+  .stat-icon.amber  { background: #fffbeb; color: #d97706; }
+  .stat-icon.green  { background: #f0fdf6; color: #16a34a; }
+  .stat-val   { font-size: 1.6rem; font-weight: 900; color: #1e293b; line-height: 1; }
+  .stat-label { font-size: 0.72rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 3px; }
+
+  /* Report card */
+  .report-card {
+    background: #fff; border: 1.5px solid #fca5a5;
+    border-radius: 16px; overflow: hidden;
+    margin-bottom: 16px; transition: box-shadow 0.2s;
+  }
+  .report-card:hover { box-shadow: 0 6px 24px rgba(239,68,68,.12); }
+
+  .report-card-header {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    padding: 14px 20px;
+    display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    border-bottom: 1px solid #fca5a5;
+  }
+  .report-id {
+    font-size: 0.72rem; font-weight: 700; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .report-date {
+    font-size: 0.78rem; color: #dc2626; font-weight: 600;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  .report-card-body {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  /* Left: item + parties info */
+  .report-left { padding: 18px 20px; border-right: 1px solid #fef2f2; }
+  .report-right { padding: 18px 20px; }
+
+  .section-label {
+    font-size: 0.68rem; font-weight: 700; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
+  }
+
+  /* Item summary */
+  .item-mini {
+    display: flex; gap: 12px; align-items: center; margin-bottom: 16px;
+  }
+  .item-mini img {
+    width: 56px; height: 56px; border-radius: 10px;
+    object-fit: cover; flex-shrink: 0; border: 1.5px solid #fca5a5;
+  }
+  .item-mini .no-img {
+    width: 56px; height: 56px; border-radius: 10px;
+    background: #fef2f2; display: flex; align-items: center;
+    justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .item-mini-title { font-size: 0.9rem; font-weight: 700; color: #1e293b; }
+  .item-mini-meta  { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+  .item-mini-price { font-size: 0.82rem; font-weight: 700; color: #16a34a; margin-top: 2px; }
+
+  /* Party rows */
+  .party-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid #f1f5f9;
+  }
+  .party-row:last-child { border-bottom: none; }
+  .party-av {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .party-av.owner  { background: linear-gradient(135deg, #15803d, #34d478); }
+  .party-av.renter { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+  .party-name  { font-size: 0.82rem; font-weight: 700; color: #1e293b; }
+  .party-role  { font-size: 0.7rem; color: #94a3b8; }
+  .party-contact { font-size: 0.72rem; color: #475569; margin-top: 1px; }
+
+  /* Dates */
+  .dates-row {
+    background: #f8fafc; border-radius: 8px;
+    padding: 10px 12px; margin-top: 12px;
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem;
+  }
+  .dates-row .lbl { color: #94a3b8; font-weight: 600; }
+  .dates-row .val { color: #1e293b; font-weight: 700; }
+
+  /* Damage description */
+  .damage-box {
+    background: #fef2f2; border: 1.5px solid #fca5a5;
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;
+  }
+  .damage-box .damage-label {
+    font-size: 0.7rem; font-weight: 700; color: #dc2626;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .damage-box .damage-text {
+    font-size: 0.875rem; color: #1e293b; line-height: 1.65;
+  }
+
+  /* Return note */
+  .return-note-box {
+    background: #fffbeb; border: 1.5px solid #fde68a;
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+    font-size: 0.82rem; color: #92400e;
+  }
+  .return-note-box .rn-label {
+    font-size: 0.68rem; font-weight: 700; color: #d97706;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;
+  }
+
+  /* Contact quick view */
+  .contact-quick {
+    background: #f0fdf4; border: 1px solid #bbf7d4;
+    border-radius: 8px; padding: 10px 12px; margin-top: 12px;
+  }
+  .contact-quick .cq-label {
+    font-size: 0.68rem; font-weight: 700; color: #16a34a;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px;
+  }
+  .cq-row { font-size: 0.75rem; color: #475569; margin-bottom: 3px; }
+  .cq-row a { color: #16a34a; font-weight: 600; }
+  .cq-row i { color: #16a34a; width: 14px; }
+
+  /* Status badge */
+  .status-pill {
+    font-size: 0.68rem; font-weight: 700;
+    padding: 3px 10px; border-radius: 50px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .status-pill.damage { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+  .status-pill.ok     { background: #f0fdf6; color: #166534; border: 1px solid #86efac; }
+
+  /* Actions */
+  .report-actions {
+    padding: 12px 20px; border-top: 1px solid #fef2f2;
+    background: #fff9f9;
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .btn-action {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 600;
+    text-decoration: none; transition: all 0.15s; border: none; cursor: pointer;
+  }
+  .btn-view-booking { background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; }
+  .btn-view-booking:hover { background: #dcfce7; color: #15803d; }
+  .btn-view-admin   { background: #eff6ff; color: #1e40af; border: 1.5px solid #bfdbfe; }
+  .btn-view-admin:hover   { background: #dbeafe; }
+
+  /* Empty state */
+  .empty-damage {
+    text-align: center; padding: 64px 20px; color: #64748b;
+  }
+  .empty-damage i { font-size: 3.5rem; color: #86efac; display: block; margin-bottom: 14px; }
+  .empty-damage h4 { font-size: 1.1rem; font-weight: 700; color: #14532d; margin-bottom: 6px; }
+  .empty-damage p  { font-size: 0.875rem; margin: 0; }
+
+  @media (max-width: 768px) {
+    .report-card-body { grid-template-columns: 1fr; }
+    .report-left { border-right: none; border-bottom: 1px solid #fef2f2; }
+    .stats-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="container damage-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2><i class="bi bi-exclamation-triangle-fill"></i> Damage Reports</h2>
+      <p>All damage reports submitted by item owners after rental completion.</p>
+    </div>
+    {% if reports.count > 0 %}
+    <span class="header-badge">{{ reports.count }} Report{{ reports.count|pluralize }}</span>
+    {% else %}
+    <span class="header-badge" style="color:#16a34a;">All Clear ✓</span>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+      <div>
+        <div class="stat-val">{{ reports.count }}</div>
+        <div class="stat-label">Total Reports</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-clock-fill"></i></div>
+      <div>
+        <div class="stat-val">
+          {% with recent=reports|slice:":30" %}
+          {{ reports.count }}
+          {% endwith %}
+        </div>
+        <div class="stat-label">Needs Attention</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-shield-check"></i></div>
+      <div>
+        <div class="stat-val">
+          <a href="{% url 'pending_approvals' %}" style="color:#16a34a;text-decoration:none;font-size:1rem;">
+            Approvals →
+          </a>
+        </div>
+        <div class="stat-label">Go to Approvals</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reports -->
+  {% if reports %}
+    {% for booking in reports %}
+    <div class="report-card">
+
+      <!-- Card Header -->
+      <div class="report-card-header">
+        <div>
+          <div class="report-id">Report #{{ booking.pk }} &nbsp;·&nbsp; Booking ID {{ booking.pk }}</div>
+          <div style="font-size:0.82rem;font-weight:700;color:#dc2626;margin-top:2px;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Damage reported on {{ booking.listing.title }}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="status-pill damage">
+            <i class="bi bi-exclamation-triangle-fill"></i> Damaged
+          </span>
+          <div class="report-date">
+            <i class="bi bi-clock"></i>
+            {% if booking.damage_reported_at %}
+              {{ booking.damage_reported_at|date:"M d, Y" }}
+              &nbsp;·&nbsp; {{ booking.damage_reported_at|timesince }} ago
+            {% else %}
+              Date unknown
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="report-card-body">
+
+        <!-- Left: Item + Parties -->
+        <div class="report-left">
+          <div class="section-label">Item & Rental Details</div>
+
+          <div class="item-mini">
+            {% if booking.listing.image %}
+              <img src="{{ booking.listing.image.url }}" alt="{{ booking.listing.title }}">
+            {% else %}
+              <div class="no-img">📦</div>
+            {% endif %}
+            <div>
+              <div class="item-mini-title">{{ booking.listing.title }}</div>
+              <div class="item-mini-meta">
+                <i class="bi bi-tag-fill" style="color:#16a34a;"></i> {{ booking.listing.get_category_display }}
+                &nbsp;·&nbsp;
+                <i class="bi bi-geo-alt-fill" style="color:#16a34a;"></i> {{ booking.listing.location }}
+              </div>
+              <div class="item-mini-price">৳{{ booking.listing.price_per_day }}/day</div>
+            </div>
+          </div>
+
+          <!-- Owner -->
+          <div class="section-label" style="margin-top:4px;">Parties Involved</div>
+          <div class="party-row">
+            <div class="party-av owner">
+              {% if booking.listing.owner.first_name %}{{ booking.listing.owner.first_name|first|upper }}{% else %}{{ booking.listing.owner.username|first|upper }}{% endif %}
+            </div>
+            <div>
+              <div class="party-name">{{ booking.listing.owner.get_full_name|default:booking.listing.owner.username }}</div>
+              <div class="party-role">Item Owner (Reporter)</div>
+              <div class="party-contact">{{ booking.listing.owner.email }}</div>
+            </div>
+          </div>
+
+          <!-- Renter -->
+          <div class="party-row">
+            <div class="party-av renter">
+              {% if booking.renter.first_name %}{{ booking.renter.first_name|first|upper }}{% else %}{{ booking.renter.username|first|upper }}{% endif %}
+            </div>
+            <div>
+              <div class="party-name">{{ booking.renter.get_full_name|default:booking.renter.username }}</div>
+              <div class="party-role">Renter</div>
+              <div class="party-contact">{{ booking.renter.email }}</div>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="dates-row">
+            <div>
+              <div class="lbl">Rental Period</div>
+              <div class="val">{{ booking.start_date|date:"M d" }} → {{ booking.end_date|date:"M d, Y" }}</div>
+            </div>
+            <div>
+              <div class="lbl">Duration</div>
+              <div class="val">{{ booking.total_days }} day{{ booking.total_days|pluralize }}</div>
+            </div>
+            <div>
+              <div class="lbl">Total Paid</div>
+              <div class="val" style="color:#16a34a;">৳{{ booking.total_price }}</div>
+            </div>
+          </div>
+
+          <!-- Contact quick view -->
+          <div class="contact-quick">
+            <div class="cq-label"><i class="bi bi-person-lines-fill"></i> Quick Contact</div>
+            <div class="cq-row">
+              <i class="bi bi-person-fill"></i>
+              <strong>Owner:</strong>
+              <a href="mailto:{{ booking.listing.owner.email }}">{{ booking.listing.owner.email }}</a>
+              {% if booking.listing.owner.profile.phone %}
+              &nbsp;·&nbsp; {{ booking.listing.owner.profile.phone }}
+              {% endif %}
+            </div>
+            <div class="cq-row">
+              <i class="bi bi-person-fill"></i>
+              <strong>Renter:</strong>
+              <a href="mailto:{{ booking.renter.email }}">{{ booking.renter.email }}</a>
+              {% if booking.renter.profile.phone %}
+              &nbsp;·&nbsp; {{ booking.renter.profile.phone }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Damage Report -->
+        <div class="report-right">
+          <div class="section-label">Damage Report</div>
+
+          <div class="damage-box">
+            <div class="damage-label">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Damage Description (reported by owner)
+            </div>
+            <div class="damage-text">{{ booking.damage_description }}</div>
+          </div>
+
+          {% if booking.return_note %}
+          <div class="return-note-box">
+            <div class="rn-label"><i class="bi bi-chat-quote-fill"></i> Owner's Return Note</div>
+            {{ booking.return_note }}
+          </div>
+          {% endif %}
+
+          <!-- Confirmation status -->
+          <div class="section-label" style="margin-top:16px;">Confirmation Trail</div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;">
+              {% if booking.owner_confirmed_handover %}
+              <span style="color:#16a34a;"><i class="bi bi-check-circle-fill"></i></span>
+              <span style="color:#475569;">Owner confirmed handover</span>
+              {% else %}
+              <span style="color:#94a3b8;"><i class="bi bi-circle"></i></span>
+              <span style="color:#94a3b8;">Owner confirmed handover</span>
+              {% endif %}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;">
+              {% if booking.renter_confirmed_receipt %}
+              <span style="color:#16a34a;"><i class="bi bi-check-circle-fill"></i></span>
+              <span style="color:#475569;">Renter confirmed receipt</span>
+              {% else %}
+              <span style="color:#94a3b8;"><i class="bi bi-circle"></i></span>
+              <span style="color:#94a3b8;">Renter confirmed receipt</span>
+              {% endif %}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;">
+              {% if booking.owner_marked_returned %}
+              <span style="color:#16a34a;"><i class="bi bi-check-circle-fill"></i></span>
+              <span style="color:#475569;">Owner marked as returned</span>
+              {% else %}
+              <span style="color:#94a3b8;"><i class="bi bi-circle"></i></span>
+              <span style="color:#94a3b8;">Owner marked as returned</span>
+              {% endif %}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;">
+              {% if booking.renter_confirmed_return %}
+              <span style="color:#16a34a;"><i class="bi bi-check-circle-fill"></i></span>
+              <span style="color:#475569;">Renter confirmed return</span>
+              {% else %}
+              <span style="color:#94a3b8;"><i class="bi bi-circle"></i></span>
+              <span style="color:#94a3b8;">Renter confirmed return</span>
+              {% endif %}
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;">
+              <span style="color:#dc2626;"><i class="bi bi-exclamation-triangle-fill"></i></span>
+              <span style="color:#dc2626;font-weight:600;">Damage reported by owner</span>
+            </div>
+          </div>
+
+          <!-- Admin note -->
+          <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:12px 14px;font-size:0.78rem;color:#92400e;">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong> Admin Action Required:</strong>
+            Contact both parties directly using the email addresses shown to mediate this dispute.
+            Damage claims are resolved offline between owner and renter.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="report-actions">
+        <a href="/admin/bookings/damagedbookingproxy/{{ booking.pk }}/change/" class="btn-action btn-view-admin">
+          <i class="bi bi-shield-fill-check"></i> View in Admin Panel
+        </a>
+        <span style="font-size:0.75rem;color:#94a3b8;margin-left:auto;">
+          Booking #{{ booking.pk }} &nbsp;·&nbsp;
+          {% if booking.damage_reported_at %}
+          Reported {{ booking.damage_reported_at|timesince }} ago
+          {% endif %}
+        </span>
+      </div>
+
+    </div>
+    {% endfor %}
+
+  {% else %}
+  <div class="empty-damage">
+    <i class="bi bi-shield-check"></i>
+    <h4>No damage reports</h4>
+    <p>No damage has been reported on any completed rental. All good!</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Browse Items — BorrowBondhu{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h2 class="fw-bold mb-4">Browse Items</h2>
+
+  <!-- Search & Filter -->
+  <div class="card mb-4 p-3 shadow-sm">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Search</label>
+        <input type="text" name="q" class="form-control" placeholder="Camera, projector..." value="{{ query }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Category</label>
+        <select name="category" class="form-select">
+          <option value="">All Categories</option>
+          {% for val, label in categories %}
+          <option value="{{ val }}" {% if val == selected_category %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Location</label>
+        <input type="text" name="location" class="form-control" placeholder="Dhaka, Chittagong..." value="{{ location }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Min Price (৳)</label>
+        <input type="number" name="min_price" class="form-control" placeholder="0" value="{{ min_price }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Max Price (৳)</label>
+        <input type="number" name="max_price" class="form-control" placeholder="Any" value="{{ max_price }}">
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-success w-100"><i class="bi bi-search"></i></button>
+      </div>
+    </form>
+  </div>
+
+  <p class="text-muted">{{ listings.count }} item{{ listings.count|pluralize }} found</p>
+
+  {% if listings %}
+<div class="row g-4">
+  {% for item in listings %}
+  <div class="col-xl-3 col-lg-4 col-md-6">
+    <div class="item-card">
+
+      <!-- Image area -->
+      <div class="card-img-wrap">
+        {% if item.image %}
+        <img src="{{ item.image.url }}" alt="{{ item.title }}">
+        {% else %}
+        <div class="card-img-placeholder">
+          {% if item.category == 'cameras' %}📷
+          {% elif item.category == 'electronics' %}💻
+          {% elif item.category == 'tools' %}🔧
+          {% elif item.category == 'events' %}🎤
+          {% elif item.category == 'sports' %}⚽
+          {% else %}📦{% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Category pill (top left) -->
+        <div class="cat-pill">{{ item.get_category_display }}</div>
+
+        <!-- Available dot (top right) — hidden when booked -->
+        {% if not item.is_currently_booked %}
+        <div class="avail-dot" title="Available"></div>
+        {% endif %}
+
+        <!-- Booked overlay -->
+        {% with booking=item.is_currently_booked %}
+        {% if booking %}
+        <div class="booked-overlay">
+          <div class="booked-badge">
+            <svg width="12" height="12" fill="white" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5z"/></svg>
+            Booked until {{ booking.end_date|date:"M d" }}
+          </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Card body -->
+      <div class="card-body-custom">
+        <div class="card-title-text">{{ item.title }}</div>
+        <div class="card-location-text">
+          <svg width="11" height="11" fill="currentColor" viewBox="0 0 16 16"><path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+          {{ item.location }}
+        </div>
+        <div class="card-meta-row">
+          <div class="card-price-text">৳{{ item.price_per_day }} <span>/day</span></div>
+          {% with avg=item.average_rating %}
+          {% if avg %}
+          <div class="card-rating-text">
+            <span class="star-icon">★</span> {{ avg }}
+          </div>
+          {% else %}
+          <div class="card-no-rating">New</div>
+          {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+
+      <!-- Card footer -->
+      <div class="card-footer-custom">
+        <div class="owner-row">
+          <div class="owner-avatar-circle">
+            {{ item.owner.first_name|first|upper|default:item.owner.username|first|upper }}
+          </div>
+          <div class="owner-name-text">{{ item.owner.get_full_name|default:item.owner.username|truncatechars:16 }}</div>
+        </div>
+        {% if item.is_currently_booked %}
+        <a href="{% url 'listing_detail' item.pk %}" class="card-view-btn booked-btn">Booked</a>
+        {% else %}
+        <a href="{% url 'listing_detail' item.pk %}" class="card-view-btn">View</a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-search display-4"></i>
+  <p class="mt-3">No items found. Try adjusting your filters.</p>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

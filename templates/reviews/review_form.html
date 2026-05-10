@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+{% block title %}Write a Review — BorrowBondhu{% endblock %}
+
+{% block content %}
+<style>
+  .review-page { padding: 32px 0 64px; }
+  .review-wrap { max-width: 520px; margin: 0 auto; }
+
+  .page-title {
+    font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 4px;
+  }
+  .page-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 24px; }
+
+  .booking-summary {
+    background: #fff; border: 1.5px solid #e2e8f0;
+    border-radius: 14px; padding: 16px 18px;
+    margin-bottom: 20px;
+    display: flex; gap: 14px; align-items: center;
+  }
+  .booking-summary img {
+    width: 64px; height: 64px; border-radius: 10px;
+    object-fit: cover; flex-shrink: 0;
+  }
+  .booking-summary .no-img {
+    width: 64px; height: 64px; border-radius: 10px;
+    background: #f1f5f9; display: flex; align-items: center;
+    justify-content: center; font-size: 26px; flex-shrink: 0;
+  }
+  .summary-title { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+  .summary-dates { font-size: 0.78rem; color: #94a3b8; margin-top: 3px; }
+  .summary-price { font-size: 0.875rem; font-weight: 700; color: #16a34a; margin-top: 3px; }
+
+  .form-card {
+    background: #fff; border: 1.5px solid #e2e8f0;
+    border-radius: 14px; padding: 22px 24px; margin-bottom: 14px;
+  }
+  .card-section-title {
+    font-size: 0.72rem; font-weight: 700; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 6px;
+  }
+  .card-section-title i { color: #16a34a; font-size: 13px; }
+
+  /* Star rating selector */
+  .star-selector {
+    display: flex; gap: 8px; margin-bottom: 8px;
+  }
+  .star-selector input[type="radio"] { display: none; }
+  .star-selector label {
+    font-size: 2rem; color: #e2e8f0; cursor: pointer;
+    transition: color 0.15s, transform 0.1s;
+    line-height: 1;
+  }
+  .star-selector label:hover,
+  .star-selector label:hover ~ label,
+  .star-selector input:checked ~ label { color: #e2e8f0; }
+  .star-selector input:checked + label,
+  .star-selector label:hover { color: #f59e0b; }
+
+  /* Reverse order trick for CSS-only star rating */
+  .star-selector { flex-direction: row-reverse; justify-content: flex-end; }
+  .star-selector label:hover,
+  .star-selector label:hover ~ label { color: #f59e0b; }
+
+  .star-hint {
+    font-size: 0.78rem; color: #94a3b8; min-height: 18px;
+    margin-top: 4px; font-weight: 500;
+  }
+
+  label.field-label {
+    font-size: 0.75rem; font-weight: 700; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    display: block; margin-bottom: 6px;
+  }
+  textarea {
+    border: 1.5px solid #e2e8f0; border-radius: 8px;
+    padding: 10px 12px; font-size: 0.875rem;
+    color: #1e293b; width: 100%; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff; resize: vertical; min-height: 110px;
+  }
+  textarea:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+  }
+  .char-count {
+    font-size: 0.72rem; color: #94a3b8;
+    text-align: right; margin-top: 4px;
+  }
+
+  .btn-submit {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px;
+    font-size: 0.95rem; font-weight: 700;
+    background: #16a34a; color: white !important;
+    border: none; border-radius: 10px;
+    text-decoration: none !important; transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(22,163,74,.35); cursor: pointer;
+  }
+  .btn-submit:hover {
+    background: #15803d; transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(22,163,74,.4);
+  }
+  .btn-cancel {
+    display: block; text-align: center; margin-top: 10px;
+    font-size: 0.83rem; color: #94a3b8; text-decoration: none;
+  }
+  .btn-cancel:hover { color: #64748b; }
+
+  .honesty-note {
+    display: flex; align-items: flex-start; gap: 8px;
+    background: #f0fdf6; border: 1.5px solid #bbf7d4;
+    border-radius: 10px; padding: 12px 14px;
+    font-size: 0.78rem; color: #166534; margin-bottom: 16px;
+  }
+  .honesty-note i { flex-shrink: 0; margin-top: 1px; }
+</style>
+
+<div class="container review-page">
+  <div class="review-wrap">
+
+    <div class="page-title">Write a Review</div>
+    <div class="page-sub">Share your experience to help the community.</div>
+
+    <!-- Booking Summary -->
+    <div class="booking-summary">
+      {% if booking.listing.image %}
+        <img src="{{ booking.listing.image.url }}" alt="{{ booking.listing.title }}">
+      {% else %}
+        <div class="no-img">📦</div>
+      {% endif %}
+      <div>
+        <div class="summary-title">{{ booking.listing.title }}</div>
+        <div class="summary-dates">
+          <i class="bi bi-calendar3"></i>
+          {{ booking.start_date|date:"M d" }} → {{ booking.end_date|date:"M d, Y" }}
+          &nbsp;·&nbsp; {{ booking.total_days }} day{{ booking.total_days|pluralize }}
+        </div>
+        <div class="summary-price">You paid ৳{{ booking.total_price }}</div>
+      </div>
+    </div>
+
+    <!-- Honesty note -->
+    <div class="honesty-note">
+      <i class="bi bi-shield-check-fill"></i>
+      <span>Your review will be public and help other renters make informed decisions. Please be honest and respectful.</span>
+    </div>
+
+    <form method="post" id="reviewForm">
+      {% csrf_token %}
+
+      <!-- Star Rating -->
+      <div class="form-card">
+        <div class="card-section-title">
+          <i class="bi bi-star-fill"></i> Your Rating
+        </div>
+
+        <div class="star-selector">
+          <input type="radio" name="rating" id="s5" value="5">
+          <label for="s5" title="Excellent">★</label>
+          <input type="radio" name="rating" id="s4" value="4">
+          <label for="s4" title="Good">★</label>
+          <input type="radio" name="rating" id="s3" value="3">
+          <label for="s3" title="Average">★</label>
+          <input type="radio" name="rating" id="s2" value="2">
+          <label for="s2" title="Below Average">★</label>
+          <input type="radio" name="rating" id="s1" value="1">
+          <label for="s1" title="Poor">★</label>
+        </div>
+        <div class="star-hint" id="starHint">Click a star to rate</div>
+      </div>
+
+      <!-- Comment -->
+      <div class="form-card">
+        <div class="card-section-title">
+          <i class="bi bi-chat-dots"></i> Your Review
+        </div>
+        <label class="field-label">Tell others about your experience</label>
+        <textarea
+          name="comment"
+          id="commentBox"
+          maxlength="500"
+          placeholder="Was the item as described? Was the owner responsive? Would you rent from them again?"
+          required></textarea>
+        <div class="char-count"><span id="charCount">0</span> / 500</div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <i class="bi bi-send"></i> Submit Review
+      </button>
+      <a href="{% url 'my_bookings' %}" class="btn-cancel">← Back to My Bookings</a>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  const hints = {
+    1: '😞 Poor — Not what I expected',
+    2: '😐 Below Average — Had some issues',
+    3: '🙂 Average — It was okay',
+    4: '😊 Good — Happy with the rental',
+    5: '🤩 Excellent — Would highly recommend!'
+  };
+
+  document.querySelectorAll('input[name="rating"]').forEach(input => {
+    input.addEventListener('change', function() {
+      document.getElementById('starHint').textContent = hints[this.value];
+    });
+  });
+
+  const commentBox = document.getElementById('commentBox');
+  const charCount  = document.getElementById('charCount');
+  commentBox.addEventListener('input', function() {
+    charCount.textContent = this.value.length;
+  });
+</script>
+{% endblock %}

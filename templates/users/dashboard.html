@@ -1,0 +1,716 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — BorrowBondhu{% endblock %}
+
+{% block content %}
+<style>
+  .dash-page { padding: 28px 0 64px; }
+
+  /* ── Header ── */
+  .dash-header {
+    background: linear-gradient(135deg, #14532d, #166534, #15803d);
+    border-radius: 16px; padding: 26px 30px;
+    margin-bottom: 24px; position: relative;
+    overflow: hidden; display: flex;
+    align-items: center; gap: 18px;
+  }
+  .dash-header::after {
+    content: ''; position: absolute;
+    right: -40px; top: -40px;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.05); border-radius: 50%;
+  }
+  .dash-header::before {
+    content: ''; position: absolute;
+    right: 80px; bottom: -60px;
+    width: 150px; height: 150px;
+    background: rgba(255,255,255,0.04); border-radius: 50%;
+  }
+  .dash-avatar {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 22px; font-weight: 800;
+    flex-shrink: 0; position: relative; z-index: 1;
+  }
+  .dash-header-text { position: relative; z-index: 1; }
+  .dash-header-text h2 {
+    color: white; font-size: 1.3rem; font-weight: 800; margin: 0 0 3px;
+  }
+  .dash-header-text p {
+    color: rgba(255,255,255,0.65); font-size: 0.82rem; margin: 0;
+  }
+  .dash-header-actions {
+    margin-left: auto; display: flex; gap: 8px;
+    flex-shrink: 0; position: relative; z-index: 1;
+  }
+  .dash-btn-white {
+    background: white; color: #16a34a; border: none;
+    border-radius: 8px; padding: 8px 16px;
+    font-size: 0.8rem; font-weight: 700;
+    text-decoration: none; display: flex;
+    align-items: center; gap: 6px; transition: all 0.15s;
+  }
+  .dash-btn-white:hover { background: #f0fdf6; color: #15803d; transform: translateY(-1px); }
+  .dash-btn-outline {
+    background: rgba(255,255,255,0.15); color: white;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    border-radius: 8px; padding: 8px 16px;
+    font-size: 0.8rem; font-weight: 700;
+    text-decoration: none; display: flex;
+    align-items: center; gap: 6px; transition: all 0.15s;
+  }
+  .dash-btn-outline:hover { background: rgba(255,255,255,0.25); color: white; }
+
+  /* ── Stats Grid ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: #fff; border: 1.5px solid #d1fae5;
+    border-radius: 14px; padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    transition: all 0.2s; text-decoration: none;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+  .stat-card.green::before  { background: linear-gradient(90deg, #16a34a, #86efac); }
+  .stat-card.amber::before  { background: linear-gradient(90deg, #f59e0b, #fde68a); }
+  .stat-card.blue::before   { background: linear-gradient(90deg, #2563eb, #93c5fd); }
+  .stat-card.red::before    { background: linear-gradient(90deg, #ef4444, #fca5a5); }
+  .stat-card.purple::before { background: linear-gradient(90deg, #7c3aed, #c4b5fd); }
+  .stat-card:hover {
+    box-shadow: 0 6px 20px rgba(20,83,45,.1);
+    transform: translateY(-2px);
+  }
+  .stat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px; flex-shrink: 0;
+  }
+  .stat-icon.green  { background: #f0fdf6; color: #16a34a; }
+  .stat-icon.amber  { background: #fffbeb; color: #d97706; }
+  .stat-icon.blue   { background: #eff6ff; color: #2563eb; }
+  .stat-icon.red    { background: #fef2f2; color: #ef4444; }
+  .stat-icon.purple { background: #faf5ff; color: #7c3aed; }
+  .stat-val {
+    font-size: 1.55rem; font-weight: 900; color: #0f172a;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.72rem; font-weight: 600; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-top: 3px;
+  }
+  .stat-sublabel { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
+  .stat-trend {
+    font-size: 0.72rem; font-weight: 700; margin-top: 3px;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .stat-trend.up   { color: #16a34a; }
+  .stat-trend.warn { color: #d97706; }
+  .stat-trend.down { color: #ef4444; }
+
+  /* ── Pending Alerts ── */
+  .pending-section { margin-bottom: 24px; }
+  .section-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: 0.95rem; font-weight: 800; color: #1e293b;
+    display: flex; align-items: center; gap: 8px; margin: 0;
+  }
+  .section-title i { color: #16a34a; }
+  .section-link {
+    font-size: 0.78rem; font-weight: 600; color: #16a34a;
+    text-decoration: none; display: flex; align-items: center; gap: 4px;
+  }
+  .section-link:hover { color: #15803d; }
+
+  .pending-alert {
+    background: #fffbeb; border: 1.5px solid #fde68a;
+    border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 10px; display: flex;
+    align-items: center; gap: 14px;
+  }
+  .alert-actions { margin-left: auto; display: flex; gap: 6px; flex-shrink: 0; }
+  .btn-xs-accept {
+    background: #16a34a; color: white; border: none;
+    border-radius: 6px; padding: 6px 12px;
+    font-size: 0.75rem; font-weight: 700;
+    text-decoration: none; transition: background 0.15s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .btn-xs-accept:hover { background: #15803d; color: white; }
+  .btn-xs-reject {
+    background: #fef2f2; color: #991b1b;
+    border: 1px solid #fecaca; border-radius: 6px;
+    padding: 6px 12px; font-size: 0.75rem; font-weight: 700;
+    text-decoration: none; transition: background 0.15s;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .btn-xs-reject:hover { background: #fee2e2; color: #991b1b; }
+
+  /* ── Two Col ── */
+  .dash-two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  /* ── Booking Cards ── */
+  .dash-booking-card {
+    background: #fff; border: 1.5px solid #d1fae5;
+    border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 10px; display: flex;
+    align-items: center; gap: 12px;
+    transition: box-shadow 0.15s;
+  }
+  .dash-booking-card:hover { box-shadow: 0 4px 12px rgba(20,83,45,.08); }
+  .dash-booking-card.expired-card {
+    border-color: #fecaca; background: #fef9f9;
+    opacity: 0.85;
+  }
+  .dash-thumb {
+    width: 48px; height: 48px; border-radius: 8px;
+    object-fit: cover; flex-shrink: 0;
+    border: 1px solid #d1fae5;
+  }
+  .dash-thumb-placeholder {
+    width: 48px; height: 48px; border-radius: 8px;
+    background: #f0fdf4; display: flex; align-items: center;
+    justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .dash-booking-info { flex: 1; min-width: 0; }
+  .dash-booking-title {
+    font-size: 0.85rem; font-weight: 700; color: #1e293b;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .dash-booking-meta {
+    font-size: 0.72rem; color: #94a3b8;
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 3px;
+  }
+  .dash-booking-right {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 4px; flex-shrink: 0;
+  }
+  .dash-price { font-size: 0.875rem; font-weight: 800; color: #16a34a; }
+
+  /* Status badges */
+  .s-badge {
+    font-size: 0.65rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 50px;
+    display: inline-flex; align-items: center; gap: 3px;
+  }
+  .s-badge.active    { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .s-badge.pending   { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+  .s-badge.rejected  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .s-badge.completed { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+  .s-badge.expired   { background: #fef2f2; color: #991b1b; border: 1px solid #fca5a5; }
+  .s-badge.returning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+
+  /* Live badge */
+  .live-badge {
+    background: #16a34a; color: white;
+    font-size: 0.65rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 50px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .live-dot {
+    width: 6px; height: 6px; background: white;
+    border-radius: 50%; animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* Active rental card */
+  .active-rental-card {
+    background: linear-gradient(135deg, #f0fdf6, #dcfce7);
+    border: 1.5px solid #86efac;
+    border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 10px; display: flex;
+    align-items: center; gap: 12px;
+  }
+
+  /* ── Listing Grid ── */
+  .dash-listing-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  }
+  .dash-listing-card {
+    background: #fff; border: 1.5px solid #d1fae5;
+    border-radius: 12px; overflow: hidden;
+    transition: all 0.15s; text-decoration: none;
+  }
+  .dash-listing-card:hover {
+    box-shadow: 0 6px 18px rgba(20,83,45,.1);
+    transform: translateY(-2px); border-color: #86efac;
+  }
+  .dash-listing-img {
+    height: 90px; background: #f0fdf4;
+    overflow: hidden; position: relative;
+  }
+  .dash-listing-img img { width: 100%; height: 100%; object-fit: cover; }
+  .dash-listing-img .no-img {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+  }
+  .approval-tag {
+    position: absolute; top: 5px; right: 5px;
+    font-size: 0.6rem; font-weight: 700;
+    padding: 2px 6px; border-radius: 50px;
+  }
+  .approval-tag.live    { background: #16a34a; color: white; }
+  .approval-tag.pending { background: #f59e0b; color: white; }
+  .dash-listing-body { padding: 9px 11px; }
+  .dash-listing-title {
+    font-size: 0.78rem; font-weight: 700; color: #1e293b;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px;
+  }
+  .dash-listing-price { font-size: 0.82rem; font-weight: 800; color: #16a34a; }
+  .dash-listing-price span { font-size: 0.65rem; font-weight: 400; color: #94a3b8; }
+
+  /* ── Empty States ── */
+  .mini-empty {
+    background: #f8fafc; border: 1.5px dashed #d1fae5;
+    border-radius: 10px; padding: 24px 16px; text-align: center;
+    color: #64748b;
+  }
+  .mini-empty i { font-size: 1.8rem; display: block; margin-bottom: 8px; color: #86efac; }
+  .mini-empty p { font-size: 0.8rem; margin: 0 0 10px; }
+  .mini-empty .tip {
+    font-size: 0.72rem; color: #94a3b8;
+    background: #f0fdf4; border: 1px solid #d1fae5;
+    border-radius: 8px; padding: 8px 12px; margin-top: 10px;
+    text-align: left; display: flex; gap: 7px; align-items: flex-start;
+  }
+  .mini-empty .tip i { font-size: 13px; color: #16a34a; margin: 0; flex-shrink: 0; }
+  .mini-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #166534, #16a34a);
+    color: white; font-size: 0.75rem; font-weight: 700;
+    padding: 7px 14px; border-radius: 8px; text-decoration: none;
+    transition: all 0.15s; box-shadow: 0 2px 6px rgba(22,163,74,.25);
+  }
+  .mini-cta:hover { background: linear-gradient(135deg,#14532d,#15803d); color: white; transform: translateY(-1px); }
+
+  /* Needs review banner */
+  .review-banner {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border: 1.5px solid #fde68a; border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 0.85rem; color: #92400e;
+  }
+  .review-banner i { font-size: 20px; flex-shrink: 0; color: #d97706; }
+  .review-banner strong { display: block; font-weight: 700; margin-bottom: 2px; }
+  .review-banner a {
+    margin-left: auto; flex-shrink: 0;
+    background: #f59e0b; color: #78350f;
+    font-size: 0.75rem; font-weight: 700;
+    padding: 6px 14px; border-radius: 8px;
+    text-decoration: none; transition: background 0.15s;
+  }
+  .review-banner a:hover { background: #d97706; color: #78350f; }
+
+  /* Add listing shortcut */
+  .add-listing-shortcut {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 10px; padding: 10px;
+    background: #f0fdf4; border: 1.5px dashed #86efac;
+    border-radius: 10px; color: #16a34a;
+    font-size: 0.8rem; font-weight: 700;
+    text-decoration: none; transition: all 0.15s;
+  }
+  .add-listing-shortcut:hover { background: #dcfce7; color: #15803d; }
+
+  @media (max-width: 768px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .dash-two-col { grid-template-columns: 1fr; }
+    .dash-listing-grid { grid-template-columns: 1fr; }
+    .dash-header-actions { display: none; }
+  }
+</style>
+
+<div class="container dash-page">
+
+  <!-- ══ HEADER ══ -->
+  <div class="dash-header">
+    <div class="dash-avatar">
+      {% if request.user.first_name %}{{ request.user.first_name|first|upper }}{% else %}{{ request.user.username|first|upper }}{% endif %}
+    </div>
+    <div class="dash-header-text">
+      <h2>Welcome back, {{ request.user.first_name|default:request.user.username }}!</h2>
+      <p>{{ today|date:"l, M d, Y" }} — Here's your rental overview.</p>
+    </div>
+    <div class="dash-header-actions">
+      <a href="{% url 'listing_create' %}" class="dash-btn-white">
+        <i class="bi bi-plus-circle"></i> Add Listing
+      </a>
+      <a href="{% url 'listing_list' %}" class="dash-btn-outline">
+        <i class="bi bi-search"></i> Browse
+      </a>
+    </div>
+  </div>
+
+  <!-- ══ NEEDS REVIEW BANNER ══ -->
+  {% if needs_review %}
+  <div class="review-banner">
+    <i class="bi bi-star-fill"></i>
+    <div>
+      <strong>You have {{ needs_review }} completed rental{{ needs_review|pluralize }} waiting for a review</strong>
+      Share your experience to help the community.
+    </div>
+    <a href="{% url 'my_bookings' %}">Write Reviews</a>
+  </div>
+  {% endif %}
+
+  <!-- ══ STATS — Priority Order ══ -->
+  <div class="stats-grid">
+
+    <!-- 1. Active Rentals (most important) -->
+    <a href="{% url 'my_bookings' %}" class="stat-card green">
+      <div class="stat-icon green"><i class="bi bi-calendar-check-fill"></i></div>
+      <div>
+        <div class="stat-val">{{ currently_rented.count }}</div>
+        <div class="stat-label">Active Rentals</div>
+        {% if currently_rented.count > 0 %}
+        <div class="stat-trend up"><i class="bi bi-arrow-up-right"></i> Items rented out now</div>
+        {% else %}
+        <div class="stat-trend warn"><i class="bi bi-dash"></i> Nothing rented out</div>
+        {% endif %}
+      </div>
+    </a>
+
+    <!-- 2. Pending Requests (urgent) -->
+    <a href="{% url 'my_bookings' %}" class="stat-card {% if pending_requests.count > 0 %}amber{% else %}green{% endif %}">
+      <div class="stat-icon {% if pending_requests.count > 0 %}amber{% else %}green{% endif %}">
+        <i class="bi bi-inbox-fill"></i>
+      </div>
+      <div>
+        <div class="stat-val">{{ pending_requests.count }}</div>
+        <div class="stat-label">Pending Requests</div>
+        {% if pending_requests.count > 0 %}
+        <div class="stat-trend warn"><i class="bi bi-exclamation-circle"></i> Needs your response</div>
+        {% else %}
+        <div class="stat-trend up"><i class="bi bi-check-circle"></i> All clear</div>
+        {% endif %}
+      </div>
+    </a>
+
+    <!-- 3. My Listings -->
+    <a href="{% url 'my_listings' %}" class="stat-card blue">
+      <div class="stat-icon blue"><i class="bi bi-box-seam-fill"></i></div>
+      <div>
+        <div class="stat-val">{{ my_listings.count }}</div>
+        <div class="stat-label">My Listings</div>
+        <div class="stat-sublabel">{{ approved_count }} live · {{ pending_count }} pending</div>
+      </div>
+    </a>
+
+    <!-- 4. Items I'm Renting -->
+    <a href="{% url 'my_bookings' %}" class="stat-card purple">
+      <div class="stat-icon purple"><i class="bi bi-bag-fill"></i></div>
+      <div>
+        <div class="stat-val">{{ active_rents.count }}</div>
+        <div class="stat-label">Renting Now</div>
+        {% if pending_rents.count > 0 %}
+        <div class="stat-trend warn"><i class="bi bi-hourglass-split"></i> {{ pending_rents.count }} pending</div>
+        {% else %}
+        <div class="stat-sublabel">{{ my_rents.count }} total bookings</div>
+        {% endif %}
+      </div>
+    </a>
+
+  </div>
+
+  <!-- ══ PENDING REQUESTS (urgent action needed) ══ -->
+  {% if pending_requests %}
+  <div class="pending-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <i class="bi bi-bell-fill"></i>
+        Pending Requests
+        <span style="background:#ef4444;color:white;font-size:0.65rem;padding:2px 7px;border-radius:50px;font-weight:800;">
+          {{ pending_requests.count }}
+        </span>
+      </h3>
+      <a href="{% url 'my_bookings' %}" class="section-link">See all <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    {% for booking in pending_requests|slice:":3" %}
+    <div class="pending-alert">
+      {% if booking.listing.image %}
+        <img src="{{ booking.listing.image.url }}" class="dash-thumb" alt="">
+      {% else %}
+        <div class="dash-thumb-placeholder">📦</div>
+      {% endif %}
+      <div class="dash-booking-info">
+        <div class="dash-booking-title">{{ booking.listing.title }}</div>
+        <div class="dash-booking-meta">
+          <span>
+            {% if booking.renter.first_name %}{{ booking.renter.first_name }}{% else %}{{ booking.renter.username }}{% endif %}
+          </span>
+          <span><i class="bi bi-calendar3"></i> {{ booking.start_date|date:"M d" }} → {{ booking.end_date|date:"M d" }}</span>
+          <span style="color:#16a34a;font-weight:700;">৳{{ booking.total_price }}</span>
+        </div>
+        {% if booking.message %}
+        <div style="font-size:0.72rem;color:#64748b;font-style:italic;margin-top:3px;">"{{ booking.message|truncatechars:55 }}"</div>
+        {% endif %}
+      </div>
+      <div class="alert-actions">
+        <a href="{% url 'booking_action' booking.pk 'accept' %}" class="btn-xs-accept">
+          <i class="bi bi-check"></i> Accept
+        </a>
+        <a href="{% url 'booking_action' booking.pk 'reject' %}" class="btn-xs-reject">
+          <i class="bi bi-x"></i> Decline
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ══ TWO COL: Active Rentals + Rented Out ══ -->
+  <div class="dash-two-col">
+
+    <!-- Items I'm Renting -->
+    <div>
+      <div class="section-header">
+        <h3 class="section-title"><i class="bi bi-bag-check"></i> Items I'm Renting</h3>
+        <a href="{% url 'my_bookings' %}" class="section-link">All <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      {% if active_rents %}
+        {% for booking in active_rents|slice:":3" %}
+        <div class="active-rental-card">
+          {% if booking.listing.image %}
+            <img src="{{ booking.listing.image.url }}" class="dash-thumb" alt="">
+          {% else %}
+            <div class="dash-thumb-placeholder">📦</div>
+          {% endif %}
+          <div class="dash-booking-info">
+            <div class="dash-booking-title">{{ booking.listing.title }}</div>
+            <div class="dash-booking-meta">
+              <span>
+                {% if booking.end_date >= today %}
+                <i class="bi bi-calendar3"></i> Until {{ booking.end_date|date:"M d, Y" }}
+                {% else %}
+                <i class="bi bi-calendar-x" style="color:#ef4444;"></i>
+                <span style="color:#ef4444;">Ended {{ booking.end_date|date:"M d, Y" }}</span>
+                {% endif %}
+              </span>
+            </div>
+            <div style="margin-top:5px;">
+              <span class="live-badge"><span class="live-dot"></span> Active</span>
+            </div>
+          </div>
+          <div class="dash-booking-right">
+            <div class="dash-price">৳{{ booking.total_price }}</div>
+            <a href="{% url 'listing_detail' booking.listing.pk %}" style="font-size:0.7rem;color:#94a3b8;text-decoration:none;">View</a>
+          </div>
+        </div>
+        {% endfor %}
+      {% elif pending_rents %}
+        {% for booking in pending_rents|slice:":3" %}
+        <div class="dash-booking-card">
+          {% if booking.listing.image %}
+            <img src="{{ booking.listing.image.url }}" class="dash-thumb" alt="">
+          {% else %}
+            <div class="dash-thumb-placeholder">📦</div>
+          {% endif %}
+          <div class="dash-booking-info">
+            <div class="dash-booking-title">{{ booking.listing.title }}</div>
+            <div class="dash-booking-meta">
+              <span><i class="bi bi-calendar3"></i> {{ booking.start_date|date:"M d" }} → {{ booking.end_date|date:"M d" }}</span>
+            </div>
+          </div>
+          <div class="dash-booking-right">
+            <span class="s-badge pending">⏳ Pending</span>
+            <div class="dash-price">৳{{ booking.total_price }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="mini-empty">
+        <i class="bi bi-bag"></i>
+        <p>You're not renting anything right now.</p>
+        <a href="{% url 'listing_list' %}" class="mini-cta">
+          <i class="bi bi-search"></i> Browse Items
+        </a>
+        <div class="tip">
+          <i class="bi bi-lightbulb-fill"></i>
+          <span>Looking for something specific? Use the search bar at the top to find items near you.</span>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Currently Rented Out -->
+    <div>
+      <div class="section-header">
+        <h3 class="section-title"><i class="bi bi-calendar-check"></i> Rented Out Now</h3>
+        <a href="{% url 'my_bookings' %}" class="section-link">All <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      {% if currently_rented %}
+        {% for booking in currently_rented|slice:":3" %}
+        <div class="active-rental-card">
+          {% if booking.listing.image %}
+            <img src="{{ booking.listing.image.url }}" class="dash-thumb" alt="">
+          {% else %}
+            <div class="dash-thumb-placeholder">📦</div>
+          {% endif %}
+          <div class="dash-booking-info">
+            <div class="dash-booking-title">{{ booking.listing.title }}</div>
+            <div class="dash-booking-meta">
+              <span>
+                {% if booking.renter.first_name %}{{ booking.renter.first_name }}{% else %}{{ booking.renter.username }}{% endif %}
+              </span>
+              <span>
+                {% if booking.end_date >= today %}
+                <i class="bi bi-calendar3"></i> Until {{ booking.end_date|date:"M d, Y" }}
+                {% else %}
+                <i class="bi bi-calendar-x" style="color:#ef4444;"></i>
+                <span style="color:#ef4444;">Ended {{ booking.end_date|date:"M d" }}</span>
+                {% endif %}
+              </span>
+            </div>
+            <div style="margin-top:5px;">
+              <span class="live-badge"><span class="live-dot"></span> Live</span>
+            </div>
+          </div>
+          <div class="dash-booking-right">
+            <div class="dash-price">৳{{ booking.total_price }}</div>
+            <a href="{% url 'booking_action' booking.pk 'complete' %}"
+               style="font-size:0.7rem;color:#16a34a;font-weight:700;text-decoration:none;">
+               Mark Done
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="mini-empty">
+        <i class="bi bi-calendar-x"></i>
+        <p>No items are being rented out right now.</p>
+        <a href="{% url 'listing_create' %}" class="mini-cta">
+          <i class="bi bi-plus-circle"></i> Add a Listing
+        </a>
+        <div class="tip">
+          <i class="bi bi-lightbulb-fill"></i>
+          <span>
+            <strong>Tips to get more rentals:</strong><br>
+            • Add clear photos of your item<br>
+            • Write a detailed description<br>
+            • Set a competitive price per day
+          </span>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- ══ TWO COL: Recent Requests + My Listings ══ -->
+  <div class="dash-two-col">
+
+    <!-- Recent Requests -->
+    <div>
+      <div class="section-header">
+        <h3 class="section-title"><i class="bi bi-clock-history"></i> Recent Requests</h3>
+        <a href="{% url 'my_bookings' %}" class="section-link">All <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      {% for booking in recent_requests %}
+      <div class="dash-booking-card {% if booking.status == 'rejected' %}expired-card{% endif %}">
+        {% if booking.listing.image %}
+          <img src="{{ booking.listing.image.url }}" class="dash-thumb" alt="">
+        {% else %}
+          <div class="dash-thumb-placeholder">📦</div>
+        {% endif %}
+        <div class="dash-booking-info">
+          <div class="dash-booking-title">{{ booking.listing.title }}</div>
+          <div class="dash-booking-meta">
+            <span>
+              {% if booking.renter.first_name %}{{ booking.renter.first_name }}{% else %}{{ booking.renter.username }}{% endif %}
+            </span>
+            <span>{{ booking.start_date|date:"M d" }} → {{ booking.end_date|date:"M d" }}</span>
+          </div>
+        </div>
+        <div class="dash-booking-right">
+          <span class="s-badge {{ booking.status }}">
+            {% if booking.status == 'accepted' %}✓
+            {% elif booking.status == 'pending' %}⏳
+            {% elif booking.status == 'rejected' %}✗
+            {% elif booking.status == 'completed' %}★
+            {% else %}↩{% endif %}
+            {{ booking.get_status_display }}
+          </span>
+          <div class="dash-price">৳{{ booking.total_price }}</div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="mini-empty">
+        <i class="bi bi-inbox"></i>
+        <p>No booking requests on your listings yet.</p>
+        <div class="tip">
+          <i class="bi bi-lightbulb-fill"></i>
+          <span>Once you have approved listings, booking requests will appear here.</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- My Listings -->
+    <div>
+      <div class="section-header">
+        <h3 class="section-title"><i class="bi bi-box-seam"></i> My Listings</h3>
+        <a href="{% url 'my_listings' %}" class="section-link">All <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      {% if recent_listings %}
+      <div class="dash-listing-grid">
+        {% for item in recent_listings %}
+        <a href="{% url 'listing_detail' item.pk %}" class="dash-listing-card">
+          <div class="dash-listing-img">
+            {% if item.image %}
+              <img src="{{ item.image.url }}" alt="{{ item.title }}">
+            {% else %}
+              <div class="no-img">📦</div>
+            {% endif %}
+            {% if item.approved %}
+              <span class="approval-tag live">✓ Live</span>
+            {% else %}
+              <span class="approval-tag pending">⏳</span>
+            {% endif %}
+          </div>
+          <div class="dash-listing-body">
+            <div class="dash-listing-title">{{ item.title }}</div>
+            <div class="dash-listing-price">৳{{ item.price_per_day }} <span>/day</span></div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="mini-empty">
+        <i class="bi bi-plus-circle"></i>
+        <p>You haven't listed anything yet.</p>
+        <div class="tip">
+          <i class="bi bi-lightbulb-fill"></i>
+          <span>List your idle items and start earning today. It's free!</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <a href="{% url 'listing_create' %}" class="add-listing-shortcut">
+        <i class="bi bi-plus-circle-fill"></i> Add New Listing
+      </a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% block title %}My Bookings — BorrowBondhu{% endblock %}
+
+{% block content %}
+<style>
+  .bookings-page { padding: 32px 0 64px; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h2 { font-size: 1.5rem; font-weight: 800; color: #14532d; margin: 0 0 4px; }
+  .page-header p { font-size: 0.875rem; color: #64748b; margin: 0; }
+
+  .booking-tabs {
+    display: flex; gap: 4px;
+    background: #dcfce7; border: 1.5px solid #86efac;
+    border-radius: 10px; padding: 4px; margin-bottom: 24px;
+    width: fit-content;
+  }
+  .booking-tab {
+    padding: 8px 18px; border-radius: 7px;
+    font-size: 0.83rem; font-weight: 600;
+    color: #166534; cursor: pointer; border: none;
+    background: transparent; transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .booking-tab.active {
+    background: #16a34a; color: white;
+    box-shadow: 0 2px 8px rgba(22,163,74,.3);
+  }
+  .count-pill {
+    background: #bbf7d4; color: #166534;
+    font-size: 10px; font-weight: 700;
+    padding: 1px 7px; border-radius: 9999px;
+  }
+  .booking-tab.active .count-pill {
+    background: rgba(255,255,255,0.25); color: white;
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .booking-card {
+    background: #fff; border: 1.5px solid #d1fae5;
+    border-radius: 14px; padding: 18px 20px;
+    margin-bottom: 14px; transition: box-shadow 0.2s;
+  }
+  .booking-card:hover { box-shadow: 0 4px 16px rgba(20,83,45,.1); }
+
+  .booking-card-top {
+    display: flex; gap: 14px; align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .booking-thumb {
+    width: 64px; height: 64px; border-radius: 10px;
+    object-fit: cover; flex-shrink: 0;
+    border: 1.5px solid #d1fae5; display: block;
+  }
+  .booking-thumb-placeholder {
+    width: 64px; height: 64px; border-radius: 10px;
+    background: #f0fdf4; border: 1.5px solid #d1fae5;
+    display: flex; align-items: center;
+    justify-content: center; font-size: 24px; flex-shrink: 0;
+  }
+  .booking-info { flex: 1; min-width: 0; }
+  .booking-title {
+    font-size: 0.95rem; font-weight: 700; color: #1e293b;
+    margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .booking-meta {
+    font-size: 0.78rem; color: #64748b;
+    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;
+  }
+  .booking-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .status-badge {
+    font-size: 0.72rem; font-weight: 700;
+    padding: 4px 12px; border-radius: 9999px;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .status-badge.pending   { background: #fef3c7; color: #92400e; border: 1.5px solid #fde68a; }
+  .status-badge.accepted  { background: #dcfce7; color: #166534; border: 1.5px solid #86efac; }
+  .status-badge.rejected  { background: #fee2e2; color: #991b1b; border: 1.5px solid #fca5a5; }
+  .status-badge.completed { background: #e0f2fe; color: #075985; border: 1.5px solid #7dd3fc; }
+
+  .booking-price-strip {
+    background: #f0fdf4; border: 1.5px solid #d1fae5;
+    border-radius: 8px; padding: 10px 14px; margin-bottom: 14px;
+    display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .price-detail { font-size: 0.78rem; color: #64748b; }
+  .price-total  { font-size: 1rem; font-weight: 800; color: #16a34a; }
+
+  .booking-message {
+    background: #f0fdf4; border-left: 3px solid #86efac;
+    border-radius: 0 8px 8px 0; padding: 8px 12px;
+    font-size: 0.8rem; color: #475569; font-style: italic;
+    margin-bottom: 14px;
+  }
+
+  .booking-actions {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    padding-top: 14px; border-top: 1px solid #f0fdf4;
+    align-items: center;
+  }
+  .action-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 600;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-accept   { background: #16a34a; color: white !important; }
+  .btn-accept:hover { background: #15803d; color: white !important; transform: translateY(-1px); }
+  .btn-reject   { background: #fef2f2; color: #991b1b; border: 1.5px solid #fecaca; }
+  .btn-reject:hover { background: #fee2e2; color: #991b1b; }
+  .btn-complete { background: #eff6ff; color: #1e40af; border: 1.5px solid #bfdbfe; }
+  .btn-complete:hover { background: #dbeafe; color: #1e40af; }
+  .btn-review   { background: #fef3c7; color: #92400e; border: 1.5px solid #fde68a; }
+  .btn-review:hover { background: #fef08a; color: #92400e; }
+  .btn-view     { background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; }
+  .btn-view:hover { background: #dcfce7; color: #166534; }
+  .reviewed-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.78rem; color: #16a34a; font-weight: 600;
+  }
+
+  .renter-info { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: #64748b; }
+  .renter-av {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg, #15803d, #34d478);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 10px; font-weight: 700;
+  }
+
+  .empty-state { text-align: center; padding: 56px 20px; color: #64748b; }
+  .empty-state i { font-size: 3rem; display: block; margin-bottom: 12px; color: #86efac; }
+  .empty-state p { font-size: 0.9rem; margin-bottom: 16px; }
+</style>
+
+<div class="container bookings-page">
+
+  <div class="page-header">
+    <h2><i class="bi bi-calendar-check" style="color:#16a34a;"></i> My Bookings</h2>
+    <p>Manage your rental requests and incoming booking requests.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="booking-tabs">
+    <button class="booking-tab active" onclick="switchTab('renting', this)">
+      <i class="bi bi-bag"></i> Items I'm Renting
+      <span class="count-pill">{{ my_rents.count }}</span>
+    </button>
+    <button class="booking-tab" onclick="switchTab('requests', this)">
+      <i class="bi bi-inbox"></i> Requests on My Items
+      <span class="count-pill">{{ my_requests.count }}</span>
+    </button>
+  </div>
+
+  <!-- Tab: My Rents -->
+  <div class="tab-panel active" id="tab-renting">
+    {% for booking in my_rents %}
+    <div class="booking-card">
+      <div class="booking-card-top">
+        {% if booking.listing.image %}
+          <img src="{{ booking.listing.image.url }}" class="booking-thumb" alt="{{ booking.listing.title }}">
+        {% else %}
+          <div class="booking-thumb-placeholder">📦</div>
+        {% endif %}
+        <div class="booking-info">
+          <div class="booking-title">{{ booking.listing.title }}</div>
+          <div class="booking-meta">
+            <span><i class="bi bi-geo-alt"></i> {{ booking.listing.location }}</span>
+            <span><i class="bi bi-calendar3"></i> {{ booking.start_date|date:"M d" }} → {{ booking.end_date|date:"M d, Y" }}</span>
+            <span><i class="bi bi-clock"></i> {{ booking.total_days }} day{{ booking.total_days|pluralize }}</span>
+          </div>
+          <span class="status-badge {{ booking.status }}">
+            {% if booking.status == 'pending' %}⏳
+            {% elif booking.status == 'accepted' %}✓
+            {% elif booking.status == 'rejected' %}✗
+            {% else %}★{% endif %}
+            {{ booking.get_status_display }}
+          </span>
+        </div>
+      </div>
+
+      <div class="booking-price-strip">
+        <div class="price-detail">
+          ৳{{ booking.listing.price_per_day }} × {{ booking.total_days }} day{{ booking.total_days|pluralize }}
+        </div>
+        <div class="price-total">৳{{ booking.total_price }}</div>
+      </div>
+
+      {% if booking.message %}
+      <div class="booking-message">
+        <i class="bi bi-chat-quote"></i> "{{ booking.message }}"
+      </div>
+      {% endif %}
+
+      <div class="booking-actions">
+        <a href="{% url 'listing_detail' booking.listing.pk %}" class="action-btn btn-view">
+          <i class="bi bi-eye"></i> View Item
+        </a>
+        {% if booking.status == 'pending' %}
+        <span style="font-size:0.78rem; color:#64748b;">
+          <i class="bi bi-hourglass-split"></i> Waiting for owner to respond...
+        </span>
+        {% elif booking.status == 'accepted' %}
+        <span style="font-size:0.78rem; color:#16a34a; font-weight:600;">
+          <i class="bi bi-check-circle"></i> Booking confirmed — enjoy your rental!
+        </span>
+        {% elif booking.status == 'rejected' %}
+        <span style="font-size:0.78rem; color:#ef4444;">
+          <i class="bi bi-x-circle"></i> This booking was declined by the owner.
+        </span>
+        {% elif booking.status == 'completed' %}
+          {% if not booking.review %}
+          <a href="{% url 'add_review' booking.pk %}" class="action-btn btn-review">
+            <i class="bi bi-star"></i> Write a Review
+          </a>
+          {% else %}
+          <span class="reviewed-badge">
+            <i class="bi bi-patch-check-fill"></i> Review submitted
+          </span>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <i class="bi bi-bag"></i>
+      <p>You haven't made any booking requests yet.</p>
+      <a href="{% url 'listing_list' %}" class="action-btn btn-accept" style="display:inline-flex;">
+        <i class="bi bi-search"></i> Browse Items to Rent
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Tab: Requests on my items -->
+  <div class="tab-panel" id="tab-requests">
+    {% for booking in my_requests %}
+    <div class="booking-card">
+      <div class="booking-card-top">
+        {% if booking.listing.image %}
+          <img src="{{ booking.listing.image.url }}" class="booking-thumb" alt="{{ booking.listing.title }}">
+        {% else %}
+          <div class="booking-thumb-placeholder">📦</div>
+        {% endif %}
+        <div class="booking-info">
+          <div class="booking-title">{{ booking.listing.title }}</div>
+          <div class="booking-meta">
+            <span><i class="bi bi-calendar3"></i> {{ booking.start_date|date:"M d" }} → {{ booking.end_date|date:"M d, Y" }}</span>
+            <span><i class="bi bi-clock"></i> {{ booking.total_days }} day{{ booking.total_days|pluralize }}</span>
+          </div>
+          <span class="status-badge {{ booking.status }}">
+            {% if booking.status == 'pending' %}⏳
+            {% elif booking.status == 'accepted' %}✓
+            {% elif booking.status == 'rejected' %}✗
+            {% else %}★{% endif %}
+            {{ booking.get_status_display }}
+          </span>
+        </div>
+      </div>
+
+      <div class="booking-price-strip">
+        <div class="renter-info">
+          <div class="renter-av">
+            {% if booking.renter.first_name %}{{ booking.renter.first_name|first|upper }}{% else %}{{ booking.renter.username|first|upper }}{% endif %}
+          </div>
+          <span>Requested by <strong>{{ booking.renter.get_full_name|default:booking.renter.username }}</strong></span>
+        </div>
+        <div class="price-total">৳{{ booking.total_price }}</div>
+      </div>
+
+      {% if booking.message %}
+      <div class="booking-message">
+        <i class="bi bi-chat-quote"></i> "{{ booking.message }}"
+      </div>
+      {% endif %}
+
+      <div class="booking-actions">
+        <a href="{% url 'listing_detail' booking.listing.pk %}" class="action-btn btn-view">
+          <i class="bi bi-eye"></i> View Listing
+        </a>
+        {% if booking.status == 'pending' %}
+        <a href="{% url 'booking_action' booking.pk 'accept' %}" class="action-btn btn-accept">
+          <i class="bi bi-check-circle"></i> Accept
+        </a>
+        <a href="{% url 'booking_action' booking.pk 'reject' %}" class="action-btn btn-reject">
+          <i class="bi bi-x-circle"></i> Decline
+        </a>
+        {% elif booking.status == 'accepted' %}
+        <a href="{% url 'booking_action' booking.pk 'complete' %}" class="action-btn btn-complete">
+          <i class="bi bi-patch-check"></i> Mark as Completed
+        </a>
+        {% elif booking.status == 'completed' %}
+        <span class="reviewed-badge">
+          <i class="bi bi-patch-check-fill"></i> Rental completed
+        </span>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <p>No booking requests on your listings yet.</p>
+      <a href="{% url 'my_listings' %}" class="action-btn btn-view" style="display:inline-flex;">
+        <i class="bi bi-eye"></i> View Your Listings
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<script>
+  function switchTab(tabName, el) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.booking-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    el.classList.add('active');
+  }
+</script>
+
+{% endblock %}

@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+{% block title %}Listing Approvals — BorrowBondhu{% endblock %}
+
+{% block content %}
+<style>
+  .approvals-page { padding: 28px 0 64px; }
+
+  .page-header {
+    background: linear-gradient(135deg, #166534, #16a34a);
+    border-radius: 16px; padding: 24px 28px;
+    margin-bottom: 28px; display: flex;
+    align-items: center; gap: 16px;
+  }
+  .page-header h2 { color: white; font-size: 1.4rem; font-weight: 800; margin: 0 0 4px; }
+  .page-header p  { color: rgba(255,255,255,0.7); font-size: 0.85rem; margin: 0; }
+  .header-badge {
+    margin-left: auto; background: #ef4444; color: white;
+    font-size: 0.85rem; font-weight: 800;
+    padding: 6px 14px; border-radius: 50px;
+    flex-shrink: 0;
+  }
+  .header-badge.empty { background: #22c55e; }
+
+  /* Tabs */
+  .approval-tabs {
+    display: flex; gap: 4px;
+    background: #dcfce7; border: 1.5px solid #86efac;
+    border-radius: 10px; padding: 4px;
+    margin-bottom: 24px; width: fit-content;
+  }
+  .approval-tab {
+    padding: 8px 20px; border-radius: 7px;
+    font-size: 0.83rem; font-weight: 600;
+    color: #166534; cursor: pointer; border: none;
+    background: transparent; transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .approval-tab.active {
+    background: #16a34a; color: white;
+    box-shadow: 0 2px 8px rgba(22,163,74,.3);
+  }
+  .tab-count {
+    font-size: 10px; font-weight: 800;
+    padding: 1px 7px; border-radius: 50px;
+    background: #bbf7d4; color: #166534;
+  }
+  .approval-tab.active .tab-count { background: rgba(255,255,255,0.25); color: white; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Listing card */
+  .approval-card {
+    background: #fff; border: 1.5px solid #d1fae5;
+    border-radius: 16px; overflow: hidden;
+    margin-bottom: 14px; transition: box-shadow 0.2s;
+  }
+  .approval-card:hover { box-shadow: 0 6px 20px rgba(20,83,45,.1); }
+  .approval-card.pending-card { border-color: #fde68a; }
+
+  .ac-top {
+    display: flex; gap: 0; align-items: stretch;
+  }
+  .ac-image {
+    width: 160px; flex-shrink: 0;
+    background: #f0fdf4; position: relative;
+  }
+  .ac-image img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .ac-image-placeholder {
+    width: 100%; height: 100%; min-height: 130px;
+    display: flex; align-items: center;
+    justify-content: center; font-size: 40px;
+  }
+  .ac-body { flex: 1; padding: 16px 18px; }
+  .ac-title { font-size: 1rem; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
+  .ac-meta {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    font-size: 0.78rem; color: #64748b; margin-bottom: 10px;
+  }
+  .ac-meta span { display: flex; align-items: center; gap: 4px; }
+  .ac-desc {
+    font-size: 0.82rem; color: #475569;
+    line-height: 1.6; margin-bottom: 10px;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  /* Owner row */
+  .ac-owner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    background: #f8fafc; border-top: 1px solid #f0fdf4;
+  }
+  .ac-owner-av {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, #15803d, #34d478);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 10px; font-weight: 700;
+  }
+  .ac-owner-name { font-size: 0.8rem; font-weight: 600; color: #334155; }
+  .ac-owner-email { font-size: 0.72rem; color: #94a3b8; margin-left: 4px; }
+
+  /* Actions */
+  .ac-actions {
+    display: flex; flex-direction: column;
+    gap: 8px; padding: 16px; justify-content: center;
+    border-left: 1px solid #f0fdf4; flex-shrink: 0;
+    min-width: 130px;
+  }
+  .btn-approve {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 16px; border-radius: 8px;
+    background: linear-gradient(135deg, #166534, #16a34a);
+    color: white; font-size: 0.82rem; font-weight: 700;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(22,163,74,.3);
+  }
+  .btn-approve:hover { background: linear-gradient(135deg, #14532d, #15803d); color: white; transform: translateY(-1px); }
+  .btn-reject-listing {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 16px; border-radius: 8px;
+    background: #fef2f2; color: #991b1b;
+    border: 1.5px solid #fecaca;
+    font-size: 0.82rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-reject-listing:hover { background: #fee2e2; }
+  .btn-preview {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px;
+    background: #f0fdf4; color: #166534;
+    border: 1.5px solid #86efac;
+    font-size: 0.78rem; font-weight: 600;
+    text-decoration: none; transition: all 0.15s;
+  }
+  .btn-preview:hover { background: #dcfce7; }
+
+  /* Approved card actions */
+  .btn-unapprove {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 10px 16px; border-radius: 8px;
+    background: #fffbeb; color: #92400e;
+    border: 1.5px solid #fde68a;
+    font-size: 0.82rem; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-unapprove:hover { background: #fef3c7; }
+
+  /* Status pill */
+  .status-pill {
+    position: absolute; top: 8px; left: 8px;
+    font-size: 0.65rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 50px;
+  }
+  .status-pill.pending  { background: #fef3c7; color: #92400e; }
+  .status-pill.approved { background: #dcfce7; color: #166534; }
+
+  /* Empty state */
+  .empty-approvals {
+    text-align: center; padding: 56px 20px; color: #64748b;
+  }
+  .empty-approvals i { font-size: 3rem; color: #86efac; display: block; margin-bottom: 12px; }
+  .empty-approvals h4 { font-size: 1.1rem; font-weight: 700; color: #14532d; margin-bottom: 6px; }
+  .empty-approvals p  { font-size: 0.875rem; }
+
+  @media (max-width: 576px) {
+    .ac-top { flex-direction: column; }
+    .ac-image { width: 100%; height: 160px; }
+    .ac-actions { flex-direction: row; border-left: none; border-top: 1px solid #f0fdf4; min-width: unset; }
+  }
+</style>
+
+<div class="container approvals-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2><i class="bi bi-shield-check"></i> Listing Approvals</h2>
+      <p>Review and approve or reject listing submissions.</p>
+    </div>
+    {% if pending.count > 0 %}
+    <span class="header-badge">{{ pending.count }} pending</span>
+    {% else %}
+    <span class="header-badge empty">All clear ✓</span>
+    {% endif %}
+  </div>
+
+  <!-- Tabs -->
+  <div class="approval-tabs">
+    <button class="approval-tab active" onclick="switchTab('pending', this)">
+      <i class="bi bi-hourglass-split"></i> Pending
+      <span class="tab-count">{{ pending.count }}</span>
+    </button>
+    <button class="approval-tab" onclick="switchTab('approved', this)">
+      <i class="bi bi-check-circle"></i> Recently Approved
+      <span class="tab-count">{{ approved.count }}</span>
+    </button>
+  </div>
+
+  <!-- Pending Tab -->
+  <div class="tab-panel active" id="tab-pending">
+    {% if pending %}
+      {% for listing in pending %}
+      <div class="approval-card pending-card">
+        <div class="ac-top">
+
+          <!-- Image -->
+          <div class="ac-image">
+            {% if listing.image %}
+              <img src="{{ listing.image.url }}" alt="{{ listing.title }}">
+            {% else %}
+              <div class="ac-image-placeholder">
+                {% if listing.category == 'cameras' %}📷
+                {% elif listing.category == 'electronics' %}💻
+                {% elif listing.category == 'tools' %}🔧
+                {% elif listing.category == 'events' %}🎤
+                {% elif listing.category == 'sports' %}⚽
+                {% else %}📦{% endif %}
+              </div>
+            {% endif %}
+            <span class="status-pill pending">⏳ Pending</span>
+          </div>
+
+          <!-- Body -->
+          <div class="ac-body">
+            <div class="ac-title">{{ listing.title }}</div>
+            <div class="ac-meta">
+              <span><i class="bi bi-tag-fill" style="color:#16a34a;"></i> {{ listing.get_category_display }}</span>
+              <span><i class="bi bi-geo-alt-fill" style="color:#16a34a;"></i> {{ listing.location }}</span>
+              <span><i class="bi bi-cash-coin" style="color:#16a34a;"></i> ৳{{ listing.price_per_day }}/day</span>
+              <span><i class="bi bi-clock" style="color:#94a3b8;"></i> Submitted {{ listing.created_at|timesince }} ago</span>
+            </div>
+            <div class="ac-desc">{{ listing.description }}</div>
+          </div>
+
+          <!-- Actions -->
+          <div class="ac-actions">
+            <a href="{% url 'approve_listing' listing.pk %}" class="btn-approve">
+              <i class="bi bi-check-lg"></i> Approve
+            </a>
+            <a href="{% url 'reject_listing' listing.pk %}" class="btn-reject-listing">
+              <i class="bi bi-x-lg"></i> Reject
+            </a>
+            <a href="{% url 'listing_preview' listing.pk %}" class="btn-preview" target="_blank">
+              <i class="bi bi-eye"></i> Preview
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Owner row -->
+        <div class="ac-owner">
+          <div class="ac-owner-av">
+            {% if listing.owner.first_name %}{{ listing.owner.first_name|first|upper }}{% else %}{{ listing.owner.username|first|upper }}{% endif %}
+          </div>
+          <span class="ac-owner-name">{{ listing.owner.get_full_name|default:listing.owner.username }}</span>
+          <span class="ac-owner-email">· {{ listing.owner.email }}</span>
+          <span style="margin-left:auto;font-size:0.72rem;color:#94a3b8;">
+            Member since {{ listing.owner.date_joined|date:"M Y" }}
+          </span>
+        </div>
+
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="empty-approvals">
+      <i class="bi bi-check-circle-fill"></i>
+      <h4>No pending listings!</h4>
+      <p>All listings have been reviewed. Check back later.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recently Approved Tab -->
+  <div class="tab-panel" id="tab-approved">
+    {% if approved %}
+      {% for listing in approved %}
+      <div class="approval-card">
+        <div class="ac-top">
+
+          <div class="ac-image">
+            {% if listing.image %}
+              <img src="{{ listing.image.url }}" alt="{{ listing.title }}">
+            {% else %}
+              <div class="ac-image-placeholder">
+                {% if listing.category == 'cameras' %}📷
+                {% elif listing.category == 'electronics' %}💻
+                {% elif listing.category == 'tools' %}🔧
+                {% elif listing.category == 'events' %}🎤
+                {% elif listing.category == 'sports' %}⚽
+                {% else %}📦{% endif %}
+              </div>
+            {% endif %}
+            <span class="status-pill approved">✓ Live</span>
+          </div>
+
+          <div class="ac-body">
+            <div class="ac-title">{{ listing.title }}</div>
+            <div class="ac-meta">
+              <span><i class="bi bi-tag-fill" style="color:#16a34a;"></i> {{ listing.get_category_display }}</span>
+              <span><i class="bi bi-geo-alt-fill" style="color:#16a34a;"></i> {{ listing.location }}</span>
+              <span><i class="bi bi-cash-coin" style="color:#16a34a;"></i> ৳{{ listing.price_per_day }}/day</span>
+            </div>
+            <div class="ac-desc">{{ listing.description }}</div>
+          </div>
+
+          <div class="ac-actions">
+            <a href="{% url 'listing_detail' listing.pk %}" class="btn-preview">
+              <i class="bi bi-eye"></i> View Live
+            </a>
+            <a href="{% url 'reject_listing' listing.pk %}" class="btn-unapprove">
+              <i class="bi bi-eye-slash"></i> Unapprove
+            </a>
+          </div>
+
+        </div>
+
+        <div class="ac-owner">
+          <div class="ac-owner-av">
+            {% if listing.owner.first_name %}{{ listing.owner.first_name|first|upper }}{% else %}{{ listing.owner.username|first|upper }}{% endif %}
+          </div>
+          <span class="ac-owner-name">{{ listing.owner.get_full_name|default:listing.owner.username }}</span>
+          <span class="ac-owner-email">· {{ listing.owner.email }}</span>
+        </div>
+
+      </div>
+      {% endfor %}
+    {% else %}
+    <div class="empty-approvals">
+      <i class="bi bi-inbox"></i>
+      <h4>No approved listings yet.</h4>
+      <p>Approved listings will appear here.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  function switchTab(tabName, el) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.approval-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    el.classList.add('active');
+  }
+</script>
+{% endblock %}
